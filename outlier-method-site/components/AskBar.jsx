@@ -31,7 +31,10 @@ export default function AskBar() {
   return (
     <div className="ask-amos">
       <div className="ask-inner">
-        <div className="ask-face">AF</div>
+        <div className="avatar avatar-amos avatar-sm">
+          <img src="/amos.png" alt="Amos Flint" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+          <span className="avatar-fallback">AF</span>
+        </div>
         <div className="ask-box">
           <input
             type="text"
@@ -50,7 +53,15 @@ export default function AskBar() {
           ))}
         </div>
       </div>
-      {answer && <div className="ask-answer">Amos: {answer}</div>}
+      {answer && (
+        <div className="ask-answer">
+          <div className="avatar avatar-amos avatar-xs">
+            <img src="/amos.png" alt="" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            <span className="avatar-fallback">AF</span>
+          </div>
+          <span>Amos: {answer}</span>
+        </div>
+      )}
     </div>
   );
 }

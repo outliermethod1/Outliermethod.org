@@ -38,19 +38,18 @@ export default function Hero() {
 
       {/* Amos Flint */}
       <div className="persona">
-        <div className="persona-head">
-          <div className="p-name display">Amos Flint</div>
-          <div className="p-role">
-            Old Trapper. Maps. Gear.
-            <br />
-            Public Land Expert.
+        <div className="persona-head avatar-head">
+          <div className="avatar avatar-amos">
+            <img src="/amos.png" alt="Amos Flint" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            <span className="avatar-fallback">AF</span>
           </div>
-        </div>
-        <div className="persona-portrait amos">
-          {/* Drop /public/amos.jpg in and switch the CSS per globals.css note */}
-          <div className="portrait-mark">AF</div>
-          <div className="portrait-note">
-            portrait slot — late 50s, beard, trapper hat, map in hand, wool coat
+          <div>
+            <div className="p-name display">Amos Flint</div>
+            <div className="p-role">
+              Old Trapper. Maps. Gear.
+              <br />
+              Public Land Expert.
+            </div>
           </div>
         </div>
         <div className="persona-quote">
@@ -77,18 +76,18 @@ export default function Hero() {
 
       {/* Eleanor Crowe */}
       <div className="persona">
-        <div className="persona-head">
-          <div className="p-name display">Eleanor Crowe</div>
-          <div className="p-role">
-            Outdoorswoman. Naturalist.
-            <br />
-            Family &amp; Gear Advisor.
+        <div className="persona-head avatar-head">
+          <div className="avatar avatar-eleanor">
+            <img src="/eleanor.png" alt="Eleanor Crowe" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            <span className="avatar-fallback">EC</span>
           </div>
-        </div>
-        <div className="persona-portrait eleanor">
-          <div className="portrait-mark">EC</div>
-          <div className="portrait-note">
-            portrait slot — 50s, field notebook, waxed jacket, competent
+          <div>
+            <div className="p-name display">Eleanor Crowe</div>
+            <div className="p-role">
+              Outdoorswoman. Naturalist.
+              <br />
+              Family &amp; Gear Advisor.
+            </div>
           </div>
         </div>
         <div className="persona-quote">
