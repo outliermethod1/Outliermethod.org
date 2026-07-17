@@ -7,14 +7,12 @@
 // LIVE CAMS — paste real embed URLs (Explore.org iframe src) into `embed`.
 // Leave embed as "" to show the placeholder. Add cam #9+ as one more object.
 export const CAMS = [
-  { name: "Brooks Falls Bears", loc: "Katmai, Alaska", icon: "🐻", bg: "#4a3c28", embed: "" },
-  { name: "Elk Refuge", loc: "Jackson Hole, Wyoming", icon: "🦌", bg: "#3d4d35", embed: "" },
-  { name: "African Watering Hole", loc: "Laikipia, Kenya", icon: "🦓", bg: "#55401f", embed: "" },
-  { name: "Brown Bear Forest", loc: "Transylvania, Romania", icon: "🌲", bg: "#2c3e2f", embed: "" },
-  { name: "Moose Migration", loc: "Kullberg, Sweden", icon: "🫎", bg: "#35483d", embed: "" },
-  { name: "Kamchatka Wilderness", loc: "Kamchatka, Russia", icon: "🏔", bg: "#3a4450", embed: "" },
-  { name: "Eagle Nest Cam", loc: "Colorado, USA", icon: "🦅", bg: "#4d4030", embed: "" },
-  { name: "Wolf Country", loc: "Yellowstone, Wyoming", icon: "🐺", bg: "#3d3d46", embed: "" },
+  { name: "Brooks Falls Bears", loc: "Katmai, Alaska", icon: "🐻", bg: "#4a3c28", embed: "https://www.youtube.com/embed/J7ZrIDvqlic?autoplay=1&mute=1" },
+  { name: "Elk Country", loc: "Benezette, Pennsylvania", icon: "🦌", bg: "#3d4d35", embed: "https://www.youtube.com/embed/BG-qgAihcVY?autoplay=1&mute=1" },
+  { name: "Whitetail Woods", loc: "Southwest Pennsylvania", icon: "🦌", bg: "#55401f", embed: "https://www.youtube.com/embed/XfNhPa26fP8?autoplay=1&mute=1" },
+  { name: "Underwater Salmon Run", loc: "Brooks River, Alaska", icon: "🐟", bg: "#2c3e4f", embed: "https://www.youtube.com/embed/oQsznpmNcn8?autoplay=1&mute=1" },
+  { name: "Roaring River Trout", loc: "Cassville, Missouri", icon: "🎣", bg: "#35483d", embed: "https://www.youtube.com/embed/LwJFWIFVlac?autoplay=1&mute=1" },
+  { name: "Wolf Country", loc: "Ely, Minnesota", icon: "🐺", bg: "#3d3d46", embed: "https://www.youtube.com/embed/5e4lsEe4Vew?autoplay=1&mute=1" },
 ];
 
 // TICKER — later this array gets fed by the daily n8n workflow.
