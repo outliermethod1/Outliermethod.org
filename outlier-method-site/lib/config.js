@@ -10,8 +10,8 @@ export const CAMS = [
   { name: "Brooks Falls Bears", loc: "Katmai, Alaska", icon: "🐻", bg: "#4a3c28", embed: "https://www.youtube.com/embed/J7ZrIDvqlic?autoplay=1&mute=1" },
   { name: "Elk Country", loc: "Benezette, Pennsylvania", icon: "🦌", bg: "#3d4d35", embed: "https://www.youtube.com/embed/BG-qgAihcVY?autoplay=1&mute=1" },
   { name: "Whitetail Woods", loc: "Southwest Pennsylvania", icon: "🦌", bg: "#55401f", embed: "https://www.youtube.com/embed/XfNhPa26fP8?autoplay=1&mute=1" },
-  { name: "Underwater Salmon Run", loc: "Brooks River, Alaska", icon: "🐟", bg: "#2c3e4f", embed: "https://www.youtube.com/embed/oQsznpmNcn8?autoplay=1&mute=1" },
-  { name: "Roaring River Trout", loc: "Cassville, Missouri", icon: "🎣", bg: "#35483d", embed: "https://www.youtube.com/embed/LwJFWIFVlac?autoplay=1&mute=1" },
+  { name: "Salmon Catch Cam", loc: "Brooks River, Alaska", icon: "🐟", bg: "#2c3e4f", embed: "https://www.youtube.com/embed/pZMdje7kCWc?autoplay=1&mute=1" },
+  { name: "Roaring River Trout", loc: "Cassville, Missouri", icon: "🎣", bg: "#35483d", embed: "https://www.youtube.com/embed/YdC7f6BlUOU?autoplay=1&mute=1" },
   { name: "Wolf Country", loc: "Ely, Minnesota", icon: "🐺", bg: "#3d3d46", embed: "https://www.youtube.com/embed/5e4lsEe4Vew?autoplay=1&mute=1" },
 ];
 
