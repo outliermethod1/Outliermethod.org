@@ -1,4 +1,4 @@
-import { WEATHER } from "../lib/config";
+import Weather from "./Weather";
 
 const NAV = [
   { label: "Home", href: "/", active: true },
@@ -28,20 +28,7 @@ export default function Header() {
             </a>
           ))}
         </nav>
-        {/* Weather: demo values from config. Phase 2 — wire to Open-Meteo. */}
-        <div className="weather">
-          <div className="w-icon">{WEATHER.icon}</div>
-          <div className="w-temp">{WEATHER.temp}</div>
-          <div className="w-meta">
-            <div className="w-city">{WEATHER.city}</div>
-            <div>
-              Air Quality: <b>{WEATHER.air}</b>
-            </div>
-            <div>
-              Pollen: <b>{WEATHER.pollen}</b>
-            </div>
-          </div>
-        </div>
+        <Weather />
       </div>
     </header>
   );
