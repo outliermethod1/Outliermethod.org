@@ -10,7 +10,7 @@ export const CAMS = [
   { name: "Brooks Falls Bears", loc: "Katmai, Alaska", icon: "🐻", bg: "#4a3c28", embed: "https://www.youtube.com/embed/J7ZrIDvqlic?autoplay=1&mute=1" },
   { name: "Elk Country", loc: "Benezette, Pennsylvania", icon: "🦌", bg: "#3d4d35", embed: "https://www.youtube.com/embed/BG-qgAihcVY?autoplay=1&mute=1" },
   { name: "Whitetail Woods", loc: "Southwest Pennsylvania", icon: "🦌", bg: "#55401f", embed: "https://www.youtube.com/embed/XfNhPa26fP8?autoplay=1&mute=1" },
-  { name: "Salmon Cam", loc: "Brooks River, Alaska", icon: "🐟", bg: "#2c3e4f", embed: "https://www.youtube.com/embed/QbP053g5TMY?autoplay=1&mute=1" },
+  { name: "Orvis Guide: Small Ponds & Rivers", loc: "Instructional Series", icon: "🐟", bg: "#2c3e4f", embed: "https://www.youtube.com/embed/QbP053g5TMY?autoplay=1&mute=1" },
   { name: "Henry's Fork Fly Water", loc: "Last Chance, Idaho", icon: "🎣", bg: "#35483d", embed: "https://v.angelcam.com/iframe?v=p2ygmn77yn&autoplay=1" },
   { name: "Wolf Country", loc: "Ely, Minnesota", icon: "🐺", bg: "#3d3d46", embed: "https://www.youtube.com/embed/5e4lsEe4Vew?autoplay=1&mute=1" },
 ];

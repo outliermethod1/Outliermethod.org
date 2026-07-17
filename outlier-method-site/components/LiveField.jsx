@@ -10,7 +10,7 @@ export default function LiveField() {
     <>
       <div className="section-label">
         <div className="live-dot" />
-        <h2 className="display">Live From the Field</h2>
+        <h2 className="display">Live Cams & Field Videos</h2>
         <div className="rule" />
       </div>
 
