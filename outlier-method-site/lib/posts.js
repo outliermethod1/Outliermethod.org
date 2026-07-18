@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { marked } from "marked";
+import { resolveAuthor } from "./authors";
 
 // Only content/blog is ever read here — content/drafts is never touched.
 const BLOG_DIR = path.join(process.cwd(), "content/blog");
@@ -17,7 +18,7 @@ export function getAllPosts() {
       const slug = file.replace(/\.md$/, "");
       const raw = fs.readFileSync(path.join(BLOG_DIR, file), "utf8");
       const { data } = matter(raw);
-      return { slug, ...data };
+      return { slug, ...data, author: resolveAuthor(data.author) };
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 }
@@ -30,7 +31,7 @@ export function getPostBySlug(slug) {
   const { data, content } = matter(raw);
   const html = marked.parse(content);
 
-  return { slug, ...data, html };
+  return { slug, ...data, author: resolveAuthor(data.author), html };
 }
 
 export function formatDate(dateString) {

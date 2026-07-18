@@ -1,6 +1,7 @@
 import Ticker from "../../components/Ticker";
 import Header from "../../components/Header";
 import FieldAudio from "../../components/FieldAudio";
+import AuthorAvatar from "../../components/AuthorAvatar";
 import { Footer } from "../../components/Sections";
 import { getAllPosts, formatDate } from "../../lib/posts";
 
@@ -29,12 +30,13 @@ export default function BlogIndex() {
           <div className="blog-grid">
             {posts.map((post) => (
               <a key={post.slug} href={`/blog/${post.slug}`} className="blog-card">
-                <div className="b-meta">
-                  {formatDate(post.date)}
-                  {post.author ? ` · ${post.author}` : ""}
-                </div>
+                <div className="b-meta">{formatDate(post.date)}</div>
                 <h2 className="display">{post.title}</h2>
                 {post.excerpt && <p>{post.excerpt}</p>}
+                <div className="b-author">
+                  <AuthorAvatar author={post.author} className="avatar-28" />
+                  <span>{post.author.name}</span>
+                </div>
                 <span className="b-read">Read More →</span>
               </a>
             ))}

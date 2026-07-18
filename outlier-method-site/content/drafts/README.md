@@ -9,12 +9,14 @@ without them showing up anywhere on outliermethod.org.
 
 Create a new markdown file here, e.g. `content/drafts/my-new-post.md`, using
 the same frontmatter as a published post plus one extra line: `status: draft`.
+`author` is one of the ids in `lib/authors.js` (`ryan`, `amos`, `eleanor`) —
+anything else falls back to `ryan`.
 
 ```md
 ---
 title: "Your Post Title"
 date: "2026-08-01"
-author: "Ryan Lynch"
+author: ryan
 excerpt: "One or two sentences for the blog index card."
 tags: ["gear", "public-land"]
 status: draft

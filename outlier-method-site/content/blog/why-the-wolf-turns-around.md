@@ -1,7 +1,7 @@
 ---
 title: "Why the Wolf Turns Around (and the Lion Walks On By)"
 date: "2026-07-18"
-author: "Ryan Lynch"
+author: "amos"
 excerpt: "Two apex predators, two totally different reactions to a trail cam — and neither one is the dumb one."
 tags: ["wildlife", "trail cams"]
 ---
