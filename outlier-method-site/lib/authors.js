@@ -17,6 +17,12 @@ export const AUTHORS = {
     avatar: "/eleanor.png",
     bio: "Outdoorswoman and naturalist. Gets families and first-timers outside without the intimidation or the four-figure gear bill.",
   },
+  jesse: {
+    name: "Jesse Meryhew",
+    role: "Staff Writer",
+    avatar: "/jesse.png",
+    bio: "Western Slope born and raised, out of Grand Junction. Facilities manager by trade, hunter by every season he can get. Jesse's spent years tracking big game in Colorado's high country — he writes about what the mountain actually teaches, not what the catalogs sell.",
+  },
 };
 
 export const DEFAULT_AUTHOR = "ryan";

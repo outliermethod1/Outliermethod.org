@@ -552,6 +552,7 @@ footer a:hover{color:var(--cream);}
 .avatar-amos{background:radial-gradient(circle at 50% 35%, #4a3f2c 0%, #2b2418 70%);}
 .avatar-eleanor{background:radial-gradient(circle at 50% 35%, #3d4a35 0%, #1e2a1a 70%);}
 .avatar-ryan{background:radial-gradient(circle at 50% 35%, #4a3a24 0%, #2a2013 70%);}
+.avatar-jesse{background:radial-gradient(circle at 50% 35%, #3a4550 0%, #1c242b 70%);}
 .avatar img{
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;
 }
