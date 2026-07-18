@@ -7,7 +7,7 @@ description: "Find elk before opening day by letting your optics do the walking 
 excerpt: "Find elk before opening day by letting your optics do the walking instead of your boots."
 ---
 
-Every summer, somebody finds a herd of bulls in a high basin, gets a video full of velvet antlers, and builds their entire season plan around that one sighting. Then the season opens, they hike back into that same basin, and it's empty. Not because the elk vanished. Because summer elk and September elk are basically two different animals living two different lives, and scouting for one doesn't guarantee you a thing about the other.
+Every summer, somebody finds a herd of bulls in a high basin, gets a video full of velvet antlers, and builds their entire season plan around that one sighting. Then the season opens, they hike back into that same basin, and it's empty. Summer elk and September elk are basically two different animals living two different lives, and scouting for one doesn't guarantee you a thing about the other.
 
 ## Scout the Feature, Not the Animal
 
@@ -21,7 +21,7 @@ Burning a full weekend hiking blind into a new unit is a good way to waste a wee
 
 ## Glassing Technique: The Part Everybody Skips
 
-This is where most guys actually lose the game, and it's not because they lack good spots. It's because they glass badly once they get there.
+This is where most guys actually lose the game — not from a lack of good spots, but from glassing badly once they get there.
 
 **Get comfortable first.** You cannot hold binoculars steady standing up, full stop. Sit down. Use your pack as a rest, or better, get behind a tripod. A shaky picture hides more animals than bad terrain ever will.
 
