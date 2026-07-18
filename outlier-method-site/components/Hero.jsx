@@ -1,5 +1,10 @@
 "use client";
 
+function askPersona(persona) {
+  window.dispatchEvent(new CustomEvent("set-persona", { detail: persona }));
+  document.getElementById("ask")?.scrollIntoView({ behavior: "smooth" });
+}
+
 export default function Hero() {
   return (
     <div className="hero">
@@ -57,7 +62,7 @@ export default function Hero() {
         <div className="persona-quote">
           &quot;I&apos;ve walked it, mapped it, and probably slept in it.&quot;
         </div>
-        <a href="#ask" className="btn btn-solid">
+        <a href="#ask" className="btn btn-solid" onClick={(e) => { e.preventDefault(); askPersona("amos"); }}>
           Ask Amos Flint
         </a>
         <div className="persona-topics">
@@ -95,7 +100,7 @@ export default function Hero() {
         <div className="persona-quote">
           &quot;You can do hard things. Let&apos;s get you outside.&quot;
         </div>
-        <a href="#ask" className="btn btn-solid">
+        <a href="#ask" className="btn btn-solid" onClick={(e) => { e.preventDefault(); askPersona("eleanor"); }}>
           Ask Eleanor Crowe
         </a>
         <div className="persona-topics">
