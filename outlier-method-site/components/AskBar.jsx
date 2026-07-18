@@ -6,6 +6,8 @@ const HINTS = ["Public land near me?", "Best wool jacket under $100?"];
 const PERSONAS = {
   amos: {
     label: "Amos",
+    name: "Amos Flint",
+    role: "Old Trapper. Public Land Expert.",
     avatarClass: "avatar-amos",
     img: "/amos.png",
     alt: "Amos Flint",
@@ -16,6 +18,8 @@ const PERSONAS = {
   },
   eleanor: {
     label: "Eleanor",
+    name: "Eleanor Crowe",
+    role: "Outdoorswoman. Family & Gear Advisor.",
     avatarClass: "avatar-eleanor",
     img: "/eleanor.png",
     alt: "Eleanor Crowe",
@@ -88,6 +92,24 @@ export default function AskBar() {
             </span>
           ))}
         </div>
+      </div>
+      <div className="persona-chips">
+        {Object.entries(PERSONAS).map(([key, entry]) => (
+          <button
+            key={key}
+            className={`persona-chip ${persona === key ? "active" : ""}`}
+            onClick={() => setPersona(key)}
+          >
+            <div className={`avatar ${entry.avatarClass} avatar-chip`}>
+              <img src={entry.img} alt={entry.alt} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+              <span className="avatar-fallback">{entry.fallback}</span>
+            </div>
+            <div className="chip-meta">
+              <div className="chip-name display">{entry.name}</div>
+              <div className="chip-role">{entry.role}</div>
+            </div>
+          </button>
+        ))}
       </div>
       {answer && (
         <div className="ask-answer">

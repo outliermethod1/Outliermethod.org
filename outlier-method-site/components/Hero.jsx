@@ -1,10 +1,5 @@
 "use client";
 
-function askPersona(persona) {
-  window.dispatchEvent(new CustomEvent("set-persona", { detail: persona }));
-  document.getElementById("ask")?.scrollIntoView({ behavior: "smooth" });
-}
-
 export default function Hero() {
   return (
     <div className="hero">
@@ -39,82 +34,6 @@ export default function Hero() {
             <a href="#blog" className="btn btn-ghost">
               Read the Blog
             </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Amos Flint */}
-      <div className="persona">
-        <div className="persona-head avatar-head">
-          <div className="avatar avatar-amos">
-            <img src="/amos.png" alt="Amos Flint" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-            <span className="avatar-fallback">AF</span>
-          </div>
-          <div>
-            <div className="p-name display">Amos Flint</div>
-            <div className="p-role">
-              Old Trapper. Maps. Gear.
-              <br />
-              Public Land Expert.
-            </div>
-          </div>
-        </div>
-        <div className="persona-quote">
-          &quot;I&apos;ve walked it, mapped it, and probably slept in it.&quot;
-        </div>
-        <a href="#ask" className="btn btn-solid" onClick={(e) => { e.preventDefault(); askPersona("amos"); }}>
-          Ask Amos Flint
-        </a>
-        <div className="persona-topics">
-          <div>
-            <span className="t-icon">🗺</span>Public Land Maps
-          </div>
-          <div>
-            <span className="t-icon">🎒</span>Gear Advice
-          </div>
-          <div>
-            <span className="t-icon">🦌</span>Hunting Tips
-          </div>
-          <div>
-            <span className="t-icon">🌤</span>Weather Intel
-          </div>
-        </div>
-      </div>
-
-      {/* Eleanor Crowe */}
-      <div className="persona">
-        <div className="persona-head avatar-head">
-          <div className="avatar avatar-eleanor">
-            <img src="/eleanor.png" alt="Eleanor Crowe" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-            <span className="avatar-fallback">EC</span>
-          </div>
-          <div>
-            <div className="p-name display">Eleanor Crowe</div>
-            <div className="p-role">
-              Outdoorswoman. Naturalist.
-              <br />
-              Family &amp; Gear Advisor.
-            </div>
-          </div>
-        </div>
-        <div className="persona-quote">
-          &quot;You can do hard things. Let&apos;s get you outside.&quot;
-        </div>
-        <a href="#ask" className="btn btn-solid" onClick={(e) => { e.preventDefault(); askPersona("eleanor"); }}>
-          Ask Eleanor Crowe
-        </a>
-        <div className="persona-topics">
-          <div>
-            <span className="t-icon">🧭</span>Outdoors Skills
-          </div>
-          <div>
-            <span className="t-icon">👨‍👩‍👧</span>Family &amp; Kids
-          </div>
-          <div>
-            <span className="t-icon">🏷</span>Gear, Earned Smart
-          </div>
-          <div>
-            <span className="t-icon">📖</span>Field Know-How
           </div>
         </div>
       </div>

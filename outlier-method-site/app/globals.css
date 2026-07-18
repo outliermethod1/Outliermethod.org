@@ -139,7 +139,7 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
 
 /* ============ HERO ============ */
 .hero{
-  display:grid;grid-template-columns:1fr 300px 300px;gap:18px;
+  display:grid;grid-template-columns:1fr;
   padding:26px 0 0;
 }
 .hero-main{
@@ -169,45 +169,28 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
 .btn-ghost{background:transparent;color:var(--cream);border:1px solid var(--cream-dim);margin-left:12px;}
 .btn-ghost:hover{border-color:var(--cream);background:rgba(233,226,205,0.07);}
 
-/* Persona cards */
-.persona{
+/* Persona chips (compact, in the ask bar) */
+.persona-chips{
+  max-width:900px;margin:10px auto 0;padding:0 22px;
+  display:flex;gap:12px;
+}
+.persona-chip{
+  display:flex;align-items:center;gap:10px;flex:1;
   background:var(--pine);border:1px solid var(--card-border);border-radius:6px;
-  display:flex;flex-direction:column;overflow:hidden;
+  padding:8px 14px;cursor:pointer;transition:border-color .15s,background .15s;
+  text-align:left;color:var(--cream);font-family:Georgia,serif;
 }
-.persona-head{padding:16px 16px 12px;text-align:center;border-bottom:1px solid var(--card-border);}
-.persona-head .p-name{font-size:1.25rem;color:var(--cream);}
-.persona-head .p-role{font-size:0.62rem;color:var(--brass);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px;font-family:Verdana,sans-serif;line-height:1.6;}
-.persona-portrait{
-  height:180px;display:flex;align-items:center;justify-content:center;position:relative;
-  background-size:cover;background-position:center top;
+.persona-chip:hover{border-color:var(--brass);}
+.persona-chip.active{border-color:var(--brass);background:var(--pine-mid);}
+.chip-meta{min-width:0;}
+.chip-name{font-size:0.92rem;color:var(--cream);line-height:1.2;}
+.chip-role{
+  font-size:0.58rem;color:var(--cream-dim);font-family:Verdana,sans-serif;
+  letter-spacing:0.04em;line-height:1.4;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.persona-portrait.amos{background-color:#2b2418;background-image:radial-gradient(circle at 50% 35%, #4a3f2c 0%, #2b2418 60%, #1a1710 100%);}
-.persona-portrait.eleanor{background-color:#242e1f;background-image:radial-gradient(circle at 50% 35%, #3d4a35 0%, #242e1f 60%, #161c13 100%);}
-/* Real portraits: drop amos.jpg / eleanor.jpg into /public and set:
-   .persona-portrait.amos{background-image:url('/amos.jpg');}
-   .persona-portrait.eleanor{background-image:url('/eleanor.jpg');}
-   then remove the mark/note elements in components/Hero.jsx */
-.portrait-mark{
-  width:92px;height:92px;border-radius:50%;border:2px solid var(--brass);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Arial Narrow',sans-serif;font-size:2rem;font-weight:700;color:var(--brass);
-  background:rgba(13,21,16,0.5);
-}
-.portrait-note{
-  position:absolute;bottom:8px;left:0;right:0;text-align:center;
-  font-size:0.58rem;color:rgba(233,226,205,0.45);font-family:Verdana,sans-serif;letter-spacing:0.06em;
-  padding:0 10px;
-}
-.persona-quote{padding:14px 18px;font-style:italic;color:var(--cream-dim);font-size:0.85rem;text-align:center;flex-grow:1;}
-.persona .btn{margin:0 16px 14px;text-align:center;}
-.persona-topics{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--card-border);}
-.persona-topics div{
-  padding:10px 4px;text-align:center;font-size:0.55rem;color:var(--cream-dim);
-  font-family:Verdana,sans-serif;letter-spacing:0.03em;line-height:1.5;
-  border-right:1px solid var(--card-border);
-}
-.persona-topics div:last-child{border-right:none;}
-.persona-topics .t-icon{font-size:1rem;display:block;margin-bottom:4px;color:var(--brass);}
+.avatar-chip{width:40px;height:40px;flex-shrink:0;}
+.avatar-chip .avatar-fallback{font-size:0.8rem;}
 
 /* ============ MANIFESTO ============ */
 .manifesto{text-align:center;padding:52px 22px 46px;position:relative;}
@@ -475,8 +458,6 @@ footer a:hover{color:var(--cream);}
 
 /* ============ RESPONSIVE ============ */
 @media(max-width:1100px){
-  .hero{grid-template-columns:1fr 1fr;}
-  .hero-main{grid-column:1/-1;min-height:380px;}
   .cards-row{grid-template-columns:repeat(3,1fr);}
   .featured-stack{grid-column:1/-1;flex-direction:row;}
   .paths-row{grid-template-columns:1fr;}
@@ -503,13 +484,10 @@ footer a:hover{color:var(--cream);}
   .states-grid{grid-template-columns:repeat(2,1fr);}
   .manifesto p{font-size:1.05rem;}
   .manifesto .m-big{font-size:1.4rem;}
+  .persona-chips{flex-direction:column;}
 }
 
 /* ============ SMALL AVATARS (replaces big portrait block) ============ */
-.avatar-head{
-  display:flex;align-items:center;gap:14px;text-align:left;
-  padding:16px;border-bottom:1px solid var(--card-border);
-}
 .avatar{
   position:relative;width:96px;height:96px;border-radius:50%;
   border:2px solid var(--brass);flex-shrink:0;overflow:hidden;
