@@ -45,8 +45,6 @@ export function Categories() {
     { id: "products", icon: "🛻", bg: "radial-gradient(circle at 50% 40%, #3d4d35 0%, #1f2a1b 100%)", title: "Trusted Products", text: "Our top picks. Field tested. Honest reviews.", btn: "Shop Gear" },
     { id: "originals", icon: "🧥", bg: "radial-gradient(circle at 50% 40%, #4a3c28 0%, #251e14 100%)", title: "Outlier Originals", text: "Restored classics. Custom gear. Built the Outlier way.", btn: "Shop Originals" },
     { id: "blog", icon: "🥾", bg: "radial-gradient(circle at 50% 40%, #35483d 0%, #1a2620 100%)", title: "Blog & Adventures", text: "Stories, guides, and hard lessons from the field.", btn: "Read Articles" },
-    { id: "community", icon: "🔥", bg: "radial-gradient(circle at 50% 55%, #55401f 0%, #241a0e 100%)", title: "Message Board", text: "Ask questions. Share wins. Learn from real people.", btn: "Join the Community" },
-    { id: "woodworking", icon: "🪚", bg: "radial-gradient(circle at 50% 40%, #4d4030 0%, #241d14 100%)", title: "Woodworking", text: "Projects, tips, and old ways that still build today.", btn: "View Projects" },
   ];
   return (
     <div className="cards-row">
@@ -58,7 +56,7 @@ export function Categories() {
           <div className="cat-body">
             <h3 className="display">{c.title}</h3>
             <p>{c.text}</p>
-            <a href={c.id === "blog" ? "/blog" : "#"} className="btn btn-solid">
+            <a href={c.id === "blog" || c.id === "products" ? "/blog" : "#"} className="btn btn-solid">
               {c.btn}
             </a>
           </div>
@@ -102,7 +100,7 @@ export function Categories() {
                   <span className="os-val">👍👍👍</span>
                 </div>
               </div>
-              <a href="#products">View Product →</a>
+              <a href="/blog">View Product →</a>
             </div>
           </div>
         </div>
@@ -149,8 +147,13 @@ export function Footer() {
             just the experts.
           </p>
           <p style={{ marginTop: 8 }}>
-            <a href="#" style={{ color: "var(--moss-bright)" }}>
+            <a href="/about" style={{ color: "var(--moss-bright)" }}>
               Learn more about our mission →
+            </a>
+          </p>
+          <p style={{ marginTop: 8 }}>
+            <a href="/disclosure" style={{ color: "var(--moss-bright)" }}>
+              Affiliate Disclosure
             </a>
           </p>
         </div>
@@ -173,16 +176,6 @@ export function Footer() {
             <span>ⓕ</span>
             <span>✉</span>
           </div>
-        </div>
-        <div>
-          <h4>Trusted by Real People</h4>
-          <p className="stars">★★★★★</p>
-          <p>4.9/5 from our community</p>
-          <p>
-            <a href="#" style={{ color: "var(--moss-bright)" }}>
-              See what people are saying →
-            </a>
-          </p>
         </div>
         <div>
           <h4>Outlier Method</h4>

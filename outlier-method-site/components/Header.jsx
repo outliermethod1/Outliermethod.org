@@ -4,9 +4,7 @@ const NAV = [
   { label: "Home", href: "/", active: true },
   { label: "Trusted Products", href: "#products" },
   { label: "Outlier Originals", href: "#originals" },
-  { label: "Woodworking", href: "#woodworking" },
   { label: "State Guides", href: "#states" },
-  { label: "Message Board", href: "#community" },
   { label: "Blog", href: "/blog" },
 ];
 
