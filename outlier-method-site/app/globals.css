@@ -139,9 +139,10 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
 
 /* ============ HERO ============ */
 .hero{
-  display:grid;grid-template-columns:1fr;
+  display:grid;grid-template-columns:55fr 45fr;gap:22px;
   padding:26px 0 0;
 }
+.hero-side{display:flex;flex-direction:column;justify-content:center;}
 .hero-main{
   position:relative;border-radius:6px;overflow:hidden;
   background:
@@ -232,11 +233,17 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
 }
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
 
-.live-section{display:grid;grid-template-columns:1fr 320px;gap:18px;margin-bottom:30px;}
+.live-compact{display:flex;flex-direction:column;gap:10px;}
+.live-label{
+  display:flex;align-items:center;gap:8px;
+  font-family:Verdana,sans-serif;font-size:0.7rem;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--brass);
+}
 .live-viewer{
   background:var(--ink);border:1px solid var(--card-border);border-radius:6px;
   overflow:hidden;position:relative;min-height:440px;display:flex;flex-direction:column;
 }
+.live-viewer-compact{min-height:300px;}
 .live-screen{
   flex-grow:1;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at 50% 60%, #2a3d2c 0%, #17231a 70%, #0d1510 100%);
@@ -259,24 +266,17 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
 .live-bar .cam-name{color:var(--cream);font-size:0.95rem;}
 .live-bar .cam-loc{color:var(--cream-dim);font-size:0.72rem;font-family:Verdana,sans-serif;margin-left:auto;letter-spacing:0.05em;}
 
-.cam-list{display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:440px;padding-right:2px;}
-.cam-tile{
-  display:flex;align-items:center;gap:12px;padding:11px 14px;
-  background:var(--pine);border:1px solid var(--card-border);border-radius:5px;
-  cursor:pointer;transition:all .15s;text-align:left;width:100%;
-  color:var(--cream);font-family:Georgia,serif;
+.cam-row{display:flex;flex-wrap:wrap;gap:8px;}
+.cam-chip{
+  display:flex;align-items:center;gap:6px;max-width:170px;
+  background:var(--pine);border:1px solid var(--card-border);border-radius:20px;
+  padding:6px 12px;cursor:pointer;transition:all .15s;
+  color:var(--cream);font-family:Georgia,serif;font-size:0.72rem;
 }
-.cam-tile:hover{border-color:var(--brass);background:var(--pine-mid);}
-.cam-tile.active{border-color:var(--moss-bright);background:var(--pine-mid);}
-.cam-thumb{
-  width:52px;height:38px;border-radius:3px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
-  border:1px solid var(--card-border);
-}
-.cam-tile .info{flex-grow:1;min-width:0;}
-.cam-tile .info .n{font-size:0.88rem;line-height:1.25;}
-.cam-tile .info .l{font-size:0.62rem;color:var(--cream-dim);font-family:Verdana,sans-serif;letter-spacing:0.05em;margin-top:2px;}
-.cam-tile .dot{width:7px;height:7px;background:#4ade80;border-radius:50%;flex-shrink:0;box-shadow:0 0 5px #4ade80;}
+.cam-chip:hover{border-color:var(--brass);background:var(--pine-mid);}
+.cam-chip.active{border-color:var(--moss-bright);background:var(--pine-mid);}
+.cam-chip .c-icon{font-size:0.85rem;flex-shrink:0;}
+.cam-chip .c-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* ============ CAMPFIRE ============ */
 .campfire{
@@ -458,15 +458,13 @@ footer a:hover{color:var(--cream);}
 
 /* ============ RESPONSIVE ============ */
 @media(max-width:1100px){
+  .hero{grid-template-columns:1fr;}
   .cards-row{grid-template-columns:repeat(3,1fr);}
   .featured-stack{grid-column:1/-1;flex-direction:row;}
   .paths-row{grid-template-columns:1fr;}
   .value-strip{grid-template-columns:repeat(2,1fr);}
   .value-item{border-bottom:1px solid var(--card-border);}
   .footer-grid{grid-template-columns:repeat(2,1fr);}
-  .live-section{grid-template-columns:1fr;}
-  .cam-list{flex-direction:row;flex-wrap:wrap;max-height:none;}
-  .cam-tile{width:auto;flex-grow:1;min-width:220px;}
   .campfire-grid{grid-template-columns:repeat(2,1fr);}
   .states-grid{grid-template-columns:repeat(3,1fr);}
   .weather{display:none;}

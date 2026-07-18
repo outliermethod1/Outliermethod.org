@@ -2,7 +2,6 @@ import Ticker from "../components/Ticker";
 import Header from "../components/Header";
 import AskBar from "../components/AskBar";
 import Hero from "../components/Hero";
-import LiveField from "../components/LiveField";
 import Campfire from "../components/Campfire";
 import PathsRow from "../components/PathsRow";
 import FieldAudio from "../components/FieldAudio";
@@ -18,7 +17,6 @@ export default function Home() {
       </div>
       <div className="wrap">
         <Hero />
-        <LiveField />
         <Manifesto />
         <ValueStrip />
         <Campfire />

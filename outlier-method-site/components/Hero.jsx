@@ -1,4 +1,5 @@
 "use client";
+import LiveField from "./LiveField";
 
 export default function Hero() {
   return (
@@ -36,6 +37,9 @@ export default function Hero() {
             </a>
           </div>
         </div>
+      </div>
+      <div className="hero-side">
+        <LiveField />
       </div>
     </div>
   );
