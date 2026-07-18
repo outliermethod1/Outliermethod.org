@@ -32,7 +32,7 @@ export default function Hero() {
             <a href="#products" className="btn btn-solid">
               Browse Gear
             </a>
-            <a href="#blog" className="btn btn-ghost">
+            <a href="/blog" className="btn btn-ghost">
               Read the Blog
             </a>
           </div>

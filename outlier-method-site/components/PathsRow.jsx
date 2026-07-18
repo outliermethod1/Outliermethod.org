@@ -28,7 +28,7 @@ export default function PathsRow() {
             Everything you need to get in the field for less than $200. Proven gear,
             earned the smart way.
           </p>
-          <a href="#blog">View Guides →</a>
+          <a href="/blog">View Guides →</a>
         </div>
       </div>
 

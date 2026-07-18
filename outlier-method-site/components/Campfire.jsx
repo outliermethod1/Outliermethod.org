@@ -37,7 +37,7 @@ export default function Campfire() {
           <div className="cf-label">Tonight&apos;s Read</div>
           <div className="cf-main">{CAMPFIRE.article.title}</div>
           <div className="cf-sub">{CAMPFIRE.article.sub}</div>
-          <a href="#blog">Read →</a>
+          <a href="/blog">Read →</a>
         </div>
         <div className="cf-card">
           <div className="cf-label">Watch the Wild</div>

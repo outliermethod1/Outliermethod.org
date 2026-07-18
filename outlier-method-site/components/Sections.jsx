@@ -58,7 +58,7 @@ export function Categories() {
           <div className="cat-body">
             <h3 className="display">{c.title}</h3>
             <p>{c.text}</p>
-            <a href="#" className="btn btn-solid">
+            <a href={c.id === "blog" ? "/blog" : "#"} className="btn btn-solid">
               {c.btn}
             </a>
           </div>
@@ -72,7 +72,7 @@ export function Categories() {
             <div className="f-thumb">🎣</div>
             <div>
               <div className="f-title">5 Vintage Fishing Reels That Still Outperform New Gear</div>
-              <a href="#blog">Read More →</a>
+              <a href="/blog">Read More →</a>
             </div>
           </div>
         </div>
