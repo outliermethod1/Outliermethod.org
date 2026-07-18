@@ -7,7 +7,7 @@ const NAV = [
   { label: "Woodworking", href: "#woodworking" },
   { label: "State Guides", href: "#states" },
   { label: "Message Board", href: "#community" },
-  { label: "Blog", href: "#blog" },
+  { label: "Blog", href: "/blog" },
 ];
 
 export default function Header() {
