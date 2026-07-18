@@ -112,6 +112,10 @@ export default function AskBar() {
           </button>
         ))}
       </div>
+      <p className="guides-note">
+        Amos and Eleanor are our AI field guides — ask them about gear, public land,
+        tactics, or getting started. Real advice, campfire delivery.
+      </p>
       {answer && (
         <div className="ask-answer">
           <div className={`avatar ${p.avatarClass} avatar-xs`}>

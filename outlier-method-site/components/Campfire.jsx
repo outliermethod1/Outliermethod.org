@@ -26,7 +26,7 @@ export default function Campfire() {
           <div className="cf-label">Tonight&apos;s Song</div>
           <div className="cf-main">{CAMPFIRE.song.title}</div>
           <div className="cf-sub">{CAMPFIRE.song.sub}</div>
-          <a href="#">Listen →</a>
+          <a href="#field-audio">Listen →</a>
         </div>
         <div className="cf-card">
           <div className="cf-label">Words Worth Keeping</div>

@@ -46,7 +46,7 @@ export default function FieldAudio() {
 
   return (
     <>
-      <div className={`field-audio ${playing ? "playing" : ""}`}>
+      <div id="field-audio" className={`field-audio ${playing ? "playing" : ""}`}>
         <button
           className="fa-btn"
           aria-label={playing ? "Pause field music" : "Play field music"}

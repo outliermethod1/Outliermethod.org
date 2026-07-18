@@ -6,6 +6,7 @@ const NAV = [
   { label: "Outlier Originals", href: "#originals" },
   { label: "State Guides", href: "#states" },
   { label: "Blog", href: "/blog" },
+  { label: "About", href: "/about" },
 ];
 
 export default function Header() {
