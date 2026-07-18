@@ -76,7 +76,8 @@ export async function POST(request) {
     }
 
     return NextResponse.json({ answer });
-  } catch {
+  } catch (err) {
+    console.error("xAI API error", err);
     return NextResponse.json({ answer: PLACEHOLDER_ANSWER });
   }
 }
