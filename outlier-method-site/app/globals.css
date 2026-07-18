@@ -147,7 +147,7 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
   background:
     linear-gradient(115deg, rgba(13,21,16,0.88) 0%, rgba(13,21,16,0.45) 45%, rgba(13,21,16,0.15) 100%),
     radial-gradient(ellipse at 70% 30%, #3b5238 0%, #22331f 45%, #16241a 100%);
-  min-height:480px;display:flex;flex-direction:column;justify-content:center;
+  min-height:380px;display:flex;flex-direction:column;justify-content:center;
   padding:48px;border:1px solid var(--card-border);
 }
 /* When your hero photo is ready, drop it in /public/hero.jpg and set:

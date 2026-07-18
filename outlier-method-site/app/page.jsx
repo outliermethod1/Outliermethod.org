@@ -18,9 +18,9 @@ export default function Home() {
       </div>
       <div className="wrap">
         <Hero />
+        <LiveField />
         <Manifesto />
         <ValueStrip />
-        <LiveField />
         <Campfire />
         <Categories />
         <StateGuides />
