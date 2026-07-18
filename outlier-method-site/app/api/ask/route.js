@@ -54,7 +54,7 @@ export async function POST(request) {
         Authorization: `Bearer ${process.env.XAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "grok-4-fast",
+        model: "grok-3-mini",
         max_tokens: 400,
         messages: [
           { role: "system", content: systemPrompt },
@@ -64,6 +64,7 @@ export async function POST(request) {
     });
 
     if (!res.ok) {
+      console.error("xAI API error", res.status, await res.text());
       return NextResponse.json({ answer: PLACEHOLDER_ANSWER });
     }
 
