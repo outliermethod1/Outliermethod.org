@@ -53,6 +53,7 @@ export default function AskBar() {
     if (!question || loading) return;
     setLoading(true);
     setAnswer("");
+    setQ("");
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
