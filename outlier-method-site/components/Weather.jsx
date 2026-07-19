@@ -41,9 +41,12 @@ export default function Weather() {
     fetch(AIR_QUALITY_URL)
       .then((res) => res.json())
       .then((data) => {
-        const usAqi = data.current.us_aqi;
-        setAir(labelForAqi(usAqi));
-        setAqi(usAqi);
+        const usAqi = data?.current?.us_aqi;
+        // Only trust a real number — the API can return an error object or null.
+        if (typeof usAqi === "number") {
+          setAir(labelForAqi(usAqi));
+          setAqi(usAqi);
+        }
       })
       .catch(() => {});
   }, []);
@@ -57,9 +60,11 @@ export default function Weather() {
         <div>
           Air Quality: <b>{air}</b>
         </div>
-        <div>
-          AQI: <b>{aqi ?? "—"}</b>
-        </div>
+        {aqi !== null && (
+          <div>
+            AQI: <b>{aqi}</b>
+          </div>
+        )}
       </div>
     </div>
   );

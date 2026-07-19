@@ -15,13 +15,14 @@ export const CAMS = [
   { name: "Wolf Country", loc: "Ely, Minnesota", icon: "🐺", bg: "#3d3d46", embed: "https://www.youtube.com/embed/5e4lsEe4Vew?autoplay=1&mute=1" },
 ];
 
-// TICKER — later this array gets fed by the daily n8n workflow.
+// TICKER — real content only. Later this array gets fed by the daily n8n workflow.
 export const TICKER_ITEMS = [
-  { icon: "🐻", text: "3 bears active", detail: "at Brooks Falls, Alaska" },
-  { icon: "🦌", text: "Elk moving", detail: "at the Jackson Hole refuge" },
-  { icon: "📖", text: "New article:", detail: "Best Wool Jackets Under $100" },
-  { icon: "🛠", text: "Fresh restoration:", detail: "1940s Plumb hatchet in Outlier Originals" },
-  { icon: "🔥", text: "Tonight around the campfire:", detail: "new song + Muir" },
+  { icon: "🐺", text: "New from Amos:", detail: "Why the Wolf Turns Around (and the Lion Walks On By)" },
+  { icon: "🐦", text: "Get ready:", detail: "The Six-Week Upland Season Countdown" },
+  { icon: "🦌", text: "Field skills:", detail: "Scouting Elk — How to Actually Use Your Glass" },
+  { icon: "🎯", text: "Start Smart:", detail: "Upland Hunting for Under $200" },
+  { icon: "🐻", text: "Live now:", detail: "Bears fishing at Brooks Falls, Alaska" },
+  { icon: "🎣", text: "Live now:", detail: "Henry's Fork fly water, Last Chance, Idaho" },
 ];
 
 // TONIGHT AROUND THE CAMPFIRE — swap daily (or automate via n8n later).

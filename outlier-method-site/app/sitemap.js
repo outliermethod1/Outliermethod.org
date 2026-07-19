@@ -12,6 +12,7 @@ export default function sitemap() {
     { url: `${BASE_URL}/why-trust-us`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/disclosure`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/gear`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE_URL}/originals`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/community`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/woodworking`, changeFrequency: "monthly", priority: 0.5 },
   ];
