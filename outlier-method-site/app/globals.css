@@ -412,6 +412,9 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
   text-transform:uppercase;letter-spacing:0.07em;font-size:0.72rem;cursor:pointer;
 }
 .updates button:hover{background:var(--moss-bright);color:var(--ink);}
+.updates button:disabled{opacity:0.7;cursor:default;}
+.updates .subscribe-done{color:var(--moss-bright);font-style:italic;}
+.updates .subscribe-error{color:var(--ember);}
 
 /* ============ BLOG ============ */
 .blog-head{padding:40px 0 6px;}

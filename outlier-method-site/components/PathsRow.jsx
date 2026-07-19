@@ -2,14 +2,35 @@
 import { useState } from "react";
 
 export default function PathsRow() {
-  const [subscribed, setSubscribed] = useState(false);
   const [email, setEmail] = useState("");
+  const [pending, setPending] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+  const [already, setAlready] = useState(false);
+  const [error, setError] = useState("");
 
-  function subscribe(e) {
+  async function subscribe(e) {
     e.preventDefault();
-    if (!email.trim()) return;
-    // Phase 2: post to your email provider (ConvertKit/Beehiiv/Mailchimp API).
-    setSubscribed(true);
+    if (!email.trim() || pending) return;
+    setPending(true);
+    setError("");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setAlready(Boolean(data.already));
+        setSubscribed(true);
+      } else {
+        setError(data.message || "Something went wrong — try again.");
+      }
+    } catch {
+      setError("Something went wrong — try again.");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -72,18 +93,31 @@ export default function PathsRow() {
       </div>
 
       <div className="updates">
-        <h3 className="display">Get Outlier Updates</h3>
-        <p>Gear picks, guides, and stories straight to your inbox.</p>
-        <form onSubmit={subscribe}>
-          <input
-            type="email"
-            placeholder="Your email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button type="submit">{subscribed ? "Subscribed ✓" : "Subscribe"}</button>
-        </form>
+        <h3 className="display">The Campfire Weekly</h3>
+        <p>Gear picks, field wisdom, and what&apos;s moving in the wild — once a week. No spam, no fluff.</p>
+        {subscribed ? (
+          <p className="subscribe-done">
+            {already
+              ? "You're already at the fire. 🔥"
+              : "You're in. Watch your inbox for The Campfire Weekly. 🔥"}
+          </p>
+        ) : (
+          <>
+            {error && <p className="subscribe-error">{error}</p>}
+            <form onSubmit={subscribe}>
+              <input
+                type="email"
+                placeholder="Your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <button type="submit" disabled={pending}>
+                {pending ? "Joining…" : "Subscribe"}
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
