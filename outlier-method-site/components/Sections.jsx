@@ -154,6 +154,11 @@ export function Footer() {
             </a>
           </p>
           <p style={{ marginTop: 8 }}>
+            <a href="/why-trust-us" style={{ color: "var(--moss-bright)" }}>
+              Why Trust Us
+            </a>
+          </p>
+          <p style={{ marginTop: 8 }}>
             <a href="/disclosure" style={{ color: "var(--moss-bright)" }}>
               Affiliate Disclosure
             </a>

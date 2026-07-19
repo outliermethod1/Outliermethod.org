@@ -4,7 +4,7 @@ import Header from "../../../components/Header";
 import FieldAudio from "../../../components/FieldAudio";
 import AuthorAvatar from "../../../components/AuthorAvatar";
 import { Footer } from "../../../components/Sections";
-import { getAllPosts, getPostBySlug, formatDate } from "../../../lib/posts";
+import { getAllPosts, getPostBySlug, getRelatedPosts, formatDate } from "../../../lib/posts";
 
 export function generateStaticParams() {
   return getAllPosts().map((post) => ({ slug: post.slug }));
@@ -32,12 +32,15 @@ export default function BlogPost({ params }) {
   const post = getPostBySlug(params.slug);
   if (!post) notFound();
 
+  const related = getRelatedPosts(post.slug, post.category);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
     datePublished: post.date,
+    ...(post.updated && { dateModified: post.updated }),
     author: { "@type": "Person", name: post.author.name },
     publisher: { "@type": "Organization", name: "Outlier Method" },
     mainEntityOfPage: `https://outliermethod.org/blog/${post.slug}`,
@@ -82,6 +85,7 @@ export default function BlogPost({ params }) {
               <div className="post-byline-name">{post.author.name}</div>
               <div className="post-byline-meta">
                 {post.author.role} · {formatDate(post.date)}
+                {post.updated && ` · Updated ${formatDate(post.updated)}`}
               </div>
             </div>
           </div>
@@ -94,6 +98,26 @@ export default function BlogPost({ params }) {
               <p className="author-box-bio">{post.author.bio}</p>
             </div>
           </div>
+
+          {related.length > 0 && (
+            <div className="related-posts">
+              <h2 className="display">More from the Field</h2>
+              <div className="blog-grid related-grid">
+                {related.map((rel) => (
+                  <a key={rel.slug} href={`/blog/${rel.slug}`} className="blog-card">
+                    <div className="b-meta">{formatDate(rel.date)}</div>
+                    <h3 className="display">{rel.title}</h3>
+                    {rel.excerpt && <p>{rel.excerpt}</p>}
+                    <div className="b-author">
+                      <AuthorAvatar author={rel.author} className="avatar-28" />
+                      <span>{rel.author.name}</span>
+                    </div>
+                    <span className="b-read">Read More →</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </article>
       </div>
       <Footer />

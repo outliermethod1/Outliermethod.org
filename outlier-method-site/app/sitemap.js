@@ -9,6 +9,7 @@ export default function sitemap() {
     { url: `${BASE_URL}/blog`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/states`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE_URL}/why-trust-us`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/disclosure`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/gear`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/community`, changeFrequency: "monthly", priority: 0.5 },

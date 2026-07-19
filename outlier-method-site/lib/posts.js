@@ -34,6 +34,13 @@ export function getPostBySlug(slug) {
   return { slug, ...data, author: resolveAuthor(data.author), html };
 }
 
+export function getRelatedPosts(slug, category, limit = 3) {
+  const others = getAllPosts().filter((post) => post.slug !== slug);
+  const sameCategory = others.filter((post) => post.category === category);
+  const rest = others.filter((post) => post.category !== category);
+  return [...sameCategory, ...rest].slice(0, limit);
+}
+
 export function formatDate(dateString) {
   if (!dateString) return "";
   return new Date(dateString).toLocaleDateString("en-US", {
