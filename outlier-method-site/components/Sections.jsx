@@ -43,7 +43,7 @@ export function ValueStrip() {
 export function Categories() {
   const cats = [
     { id: "products", icon: "🛻", bg: "radial-gradient(circle at 50% 40%, #3d4d35 0%, #1f2a1b 100%)", title: "Trusted Products", text: "Our top picks. Field tested. Honest reviews.", btn: "Shop Gear", href: "/gear" },
-    { id: "originals", icon: "🧥", bg: "radial-gradient(circle at 50% 40%, #4a3c28 0%, #251e14 100%)", title: "Outlier Originals", text: "Restored classics. Custom gear. Built the Outlier way.", btn: "Shop Originals", href: "/blog" },
+    { id: "originals", icon: "🧥", bg: "radial-gradient(circle at 50% 40%, #4a3c28 0%, #251e14 100%)", title: "Outlier Originals", text: "Restored classics. Custom gear. Built the Outlier way.", btn: "Shop Originals", href: "/originals" },
     { id: "blog", icon: "🥾", bg: "radial-gradient(circle at 50% 40%, #35483d 0%, #1a2620 100%)", title: "Blog & Adventures", text: "Stories, guides, and hard lessons from the field.", btn: "Read Articles", href: "/blog" },
     { id: "community", icon: "🔥", bg: "radial-gradient(circle at 50% 55%, #55401f 0%, #241a0e 100%)", title: "Message Board", text: "Ask questions. Share wins. Learn from real people.", btn: "Join the Community", href: "/community" },
     { id: "woodworking", icon: "🪚", bg: "radial-gradient(circle at 50% 40%, #4d4030 0%, #241d14 100%)", title: "Woodworking", text: "Projects, tips, and old ways that still build today.", btn: "View Projects", href: "/woodworking" },
@@ -69,10 +69,10 @@ export function Categories() {
         <div className="featured">
           <div className="f-label">Featured Article</div>
           <div className="f-row">
-            <div className="f-thumb">🎣</div>
+            <div className="f-thumb">🐺</div>
             <div>
-              <div className="f-title">5 Vintage Fishing Reels That Still Outperform New Gear</div>
-              <a href="/blog">Read More →</a>
+              <div className="f-title">Why the Wolf Turns Around (and the Lion Walks On By)</div>
+              <a href="/blog/why-the-wolf-turns-around">Read More →</a>
             </div>
           </div>
         </div>
@@ -167,12 +167,12 @@ export function Footer() {
         <div>
           <h4>Popular Topics</h4>
           <ul>
-            <li>Public Land Hunting</li>
-            <li>Vintage Gear Guides</li>
-            <li>Fishing, Started Smart</li>
-            <li>DIY &amp; Restoration</li>
-            <li>Backcountry Camping</li>
-            <li>Survival Skills</li>
+            <li><a href="/blog">Public Land Hunting</a></li>
+            <li><a href="/blog">Vintage Gear Guides</a></li>
+            <li><a href="/blog">Fishing, Started Smart</a></li>
+            <li><a href="/blog">DIY &amp; Restoration</a></li>
+            <li><a href="/blog">Backcountry Camping</a></li>
+            <li><a href="/blog">Survival Skills</a></li>
           </ul>
         </div>
         <div>
