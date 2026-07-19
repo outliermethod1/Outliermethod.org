@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const HINTS = ["Public land near me?", "Best wool jacket under $100?"];
 
@@ -33,8 +33,9 @@ const PERSONAS = {
 export default function AskBar() {
   const [persona, setPersona] = useState("amos");
   const [q, setQ] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const threadRef = useRef(null);
 
   useEffect(() => {
     function onSetPersona(e) {
@@ -46,27 +47,50 @@ export default function AskBar() {
     return () => window.removeEventListener("set-persona", onSetPersona);
   }, []);
 
+  useEffect(() => {
+    if (threadRef.current) {
+      threadRef.current.scrollTop = threadRef.current.scrollHeight;
+    }
+  }, [messages, loading]);
+
   const p = PERSONAS[persona];
 
   async function ask() {
     const question = q.trim();
     if (!question || loading) return;
-    setLoading(true);
-    setAnswer("");
+
+    const userMsg = { role: "user", content: question, persona };
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
     setQ("");
+    setLoading(true);
+
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, persona }),
+        body: JSON.stringify({
+          messages: nextMessages.map(({ role, content }) => ({ role, content })),
+          persona,
+        }),
       });
       const data = await res.json();
-      setAnswer(data.answer || p.idleAnswer);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.answer || p.idleAnswer, persona },
+      ]);
     } catch {
-      setAnswer(p.errorAnswer);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: p.errorAnswer, persona },
+      ]);
     } finally {
       setLoading(false);
     }
+  }
+
+  function clearConversation() {
+    setMessages([]);
   }
 
   return (
@@ -116,14 +140,38 @@ export default function AskBar() {
         Amos and Eleanor are our AI field guides — ask them about gear, public land,
         tactics, or getting started. Real advice, campfire delivery.
       </p>
-      {answer && (
-        <div className="ask-answer">
-          <div className={`avatar ${p.avatarClass} avatar-xs`}>
-            <img src={p.img} alt="" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-            <span className="avatar-fallback">{p.fallback}</span>
+
+      {messages.length > 0 && (
+        <>
+          <div className="ask-thread-head">
+            <button className="ask-clear" onClick={clearConversation}>Clear</button>
           </div>
-          <span>{p.label}: {answer}</span>
-        </div>
+          <div className="ask-thread" ref={threadRef}>
+            {messages.map((m, i) => {
+              const mp = PERSONAS[m.persona] || p;
+              return (
+                <div key={i} className={`ask-msg ${m.role}`}>
+                  {m.role === "assistant" && (
+                    <div className={`avatar ${mp.avatarClass} avatar-xs`}>
+                      <img src={mp.img} alt={mp.alt} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                      <span className="avatar-fallback">{mp.fallback}</span>
+                    </div>
+                  )}
+                  <div className="ask-bubble">{m.content}</div>
+                </div>
+              );
+            })}
+            {loading && (
+              <div className="ask-msg assistant">
+                <div className={`avatar ${p.avatarClass} avatar-xs`}>
+                  <img src={p.img} alt={p.alt} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                  <span className="avatar-fallback">{p.fallback}</span>
+                </div>
+                <div className="ask-bubble ask-thinking">{p.label} is thinking…</div>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

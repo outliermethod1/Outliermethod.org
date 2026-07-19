@@ -132,10 +132,41 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
   cursor:pointer;transition:all .15s;white-space:nowrap;
 }
 .ask-hints span:hover{border-color:var(--brass);color:var(--cream);}
-.ask-answer{
+
+/* Ask thread — ongoing conversation */
+.ask-thread-head{
   max-width:900px;margin:10px auto 0;padding:0 22px;
-  font-size:0.88rem;color:var(--cream-dim);font-style:italic;
+  display:flex;justify-content:flex-end;
 }
+.ask-clear{
+  background:none;border:none;padding:0;cursor:pointer;
+  font-family:Verdana,sans-serif;font-size:0.68rem;letter-spacing:0.04em;
+  color:var(--cream-dim);text-decoration:underline;transition:color .15s;
+}
+.ask-clear:hover{color:var(--cream);}
+.ask-thread{
+  max-width:900px;margin:8px auto 0;padding:6px 22px 2px;
+  max-height:360px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:10px;
+}
+.ask-thread::-webkit-scrollbar{width:6px;}
+.ask-thread::-webkit-scrollbar-track{background:transparent;}
+.ask-thread::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:3px;}
+.ask-msg{display:flex;align-items:flex-end;gap:8px;}
+.ask-msg.user{justify-content:flex-end;}
+.ask-bubble{
+  max-width:75%;padding:9px 14px;border-radius:14px;
+  font-size:0.88rem;line-height:1.5;color:var(--cream);
+}
+.ask-msg.user .ask-bubble{
+  background:rgba(233,226,205,0.1);border:1px solid var(--card-border);
+  border-radius:14px 14px 4px 14px;
+}
+.ask-msg.assistant .ask-bubble{
+  background:var(--pine-mid);border:1px solid var(--card-border);
+  border-radius:14px 14px 14px 4px;color:var(--cream-dim);
+}
+.ask-thinking{font-style:italic;color:var(--cream-dim);}
 
 /* ============ HERO ============ */
 .hero{
@@ -607,4 +638,3 @@ footer a:hover{color:var(--cream);}
 .avatar-40 .avatar-fallback{font-size:0.8rem;}
 .avatar-64{width:64px;height:64px;}
 .avatar-64 .avatar-fallback{font-size:1.15rem;}
-.ask-answer{display:flex;align-items:center;gap:10px;}

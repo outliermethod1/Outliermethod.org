@@ -40,14 +40,32 @@ const TOO_LONG_ANSWER =
   "Whoa now, that's a lot to unpack in one go. Keep it short, partner — " +
   "give me a sentence or two and I'll see what I can do.";
 
-export async function POST(request) {
-  const { question, persona } = await request.json();
+const MAX_MESSAGE_LENGTH = 500;
+const MAX_HISTORY = 12;
 
-  if (!question || typeof question !== "string") {
+export async function POST(request) {
+  const body = await request.json();
+  const persona = body.persona;
+
+  const rawMessages = Array.isArray(body.messages)
+    ? body.messages
+    : typeof body.question === "string"
+      ? [{ role: "user", content: body.question }]
+      : null;
+
+  if (!rawMessages || rawMessages.length === 0) {
     return NextResponse.json({ answer: "Ask me something first." }, { status: 400 });
   }
 
-  if (question.length > 500) {
+  const messages = rawMessages
+    .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+    .map((m) => ({ role: m.role, content: m.content }));
+
+  if (messages.length === 0) {
+    return NextResponse.json({ answer: "Ask me something first." }, { status: 400 });
+  }
+
+  if (messages.some((m) => m.role === "user" && m.content.length > MAX_MESSAGE_LENGTH)) {
     return NextResponse.json({ answer: TOO_LONG_ANSWER }, { status: 400 });
   }
 
@@ -56,6 +74,8 @@ export async function POST(request) {
   if (!process.env.XAI_API_KEY) {
     return NextResponse.json({ answer: PLACEHOLDER_ANSWER });
   }
+
+  const history = messages.slice(-MAX_HISTORY);
 
   try {
     const res = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -69,7 +89,7 @@ export async function POST(request) {
         max_tokens: 400,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: question },
+          ...history,
         ],
       }),
     });
