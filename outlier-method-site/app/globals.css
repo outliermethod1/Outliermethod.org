@@ -516,6 +516,18 @@ footer a:hover{color:var(--cream);}
   display:flex;align-items:center;justify-content:center;transition:background .15s;
 }
 .fa-btn:hover{background:var(--ember);}
+.fa-skip{
+  width:0;height:26px;font-size:0.55rem;padding:0;overflow:hidden;
+  opacity:0;margin-right:-11px;pointer-events:none;
+  transition:width .2s,opacity .2s,margin .2s;
+}
+.field-audio:hover .fa-skip,
+.field-audio:focus-within .fa-skip{
+  width:26px;opacity:1;margin-right:0;pointer-events:auto;
+}
+@media (hover: none){
+  .fa-skip{width:22px;opacity:1;margin-right:0;pointer-events:auto;}
+}
 .fa-meta{min-width:0;}
 .fa-label{font-size:0.55rem;color:var(--brass);text-transform:uppercase;letter-spacing:0.12em;font-family:Verdana,sans-serif;}
 .fa-track{font-size:0.78rem;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Georgia,serif;}
