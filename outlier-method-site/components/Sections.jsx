@@ -120,19 +120,19 @@ export function StateGuides() {
       </div>
       <div className="states-grid">
         {STATES.map((s) => (
-          <div className="state-card" key={s.abbr}>
+          <a className="state-card" key={s.abbr} href={`/states/${s.name.toLowerCase()}`}>
             <div className="st-abbr">{s.abbr}</div>
             <h3 className="display">{s.name}</h3>
             <p>Wildlife · Public Land · Camping · Fishing</p>
             <div className="st-tags">{s.tags}</div>
-          </div>
+          </a>
         ))}
-        <div className="state-card">
+        <a className="state-card" href="/states">
           <div className="st-abbr">＋</div>
           <h3 className="display">All States</h3>
           <p>Every state guide, one place.</p>
           <div className="st-tags">Explore the map →</div>
-        </div>
+        </a>
       </div>
     </div>
   );

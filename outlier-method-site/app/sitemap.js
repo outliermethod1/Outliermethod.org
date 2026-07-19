@@ -1,4 +1,5 @@
 import { getAllPosts } from "../lib/posts";
+import { getStateSlugs } from "../lib/states";
 
 const BASE_URL = "https://outliermethod.org";
 
@@ -6,12 +7,19 @@ export default function sitemap() {
   const staticRoutes = [
     { url: `${BASE_URL}/`, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE_URL}/blog`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/states`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/disclosure`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/gear`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/community`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/woodworking`, changeFrequency: "monthly", priority: 0.5 },
   ];
+
+  const stateRoutes = getStateSlugs().map((slug) => ({
+    url: `${BASE_URL}/states/${slug}`,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
 
   const postRoutes = getAllPosts().map((post) => ({
     url: `${BASE_URL}/blog/${post.slug}`,
@@ -20,5 +28,5 @@ export default function sitemap() {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...postRoutes];
+  return [...staticRoutes, ...stateRoutes, ...postRoutes];
 }
