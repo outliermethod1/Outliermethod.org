@@ -13,6 +13,15 @@ function formatCoordsLabel(lat, lng) {
   return `${Math.abs(lat).toFixed(3)}°${latDir}, ${Math.abs(lng).toFixed(3)}°${lngDir}`;
 }
 
+// Open-Meteo's geocoder matches on the place-name field only — it does not
+// parse "City, State" compound strings, so a query like "Gunnison, CO" (the
+// exact format our own placeholder asks for) returns zero results. Searching
+// on just the part before the first comma is what actually finds the place;
+// the admin1 field in the response still gives us the state for display.
+function extractSearchTerm(raw) {
+  return raw.split(",")[0].trim();
+}
+
 // Open-Meteo's geocoding API only does forward lookups (name -> coords), so a
 // pin dropped on the map (coords -> name) goes through Mapbox's geocoder
 // instead, since we already carry that token for the map itself. Falls back
@@ -89,6 +98,24 @@ function summarizeForecast(data) {
   });
 }
 
+const DATE_RANGES = {
+  today: { label: "Today", forecastDays: 1 },
+  next3: { label: "Next 3 Days", forecastDays: 3 },
+  weekend: { label: "This Weekend", forecastDays: 7 },
+  week: { label: "Next 7 Days", forecastDays: 7 },
+};
+const DEFAULT_RANGE = "next3";
+
+// "This Weekend" fetches a full week (Open-Meteo has no "give me the next
+// Sat/Sun" option) and we filter down to just the Saturday/Sunday in it.
+function filterDaysForRange(days, rangeKey) {
+  if (rangeKey !== "weekend") return days;
+  return days.filter((d) => {
+    const day = new Date(`${d.date}T12:00:00`).getDay();
+    return day === 0 || day === 6;
+  });
+}
+
 function buildForecastSummaryText(locationLabel, days) {
   const lines = days.map(
     (d) =>
@@ -104,6 +131,8 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
   const [status, setStatus] = useState("idle"); // idle | loading | error | ready
   const [errorMsg, setErrorMsg] = useState("");
   const [resolvedLabel, setResolvedLabel] = useState("");
+  const [resolvedCoords, setResolvedCoords] = useState(null);
+  const [dateRange, setDateRange] = useState(DEFAULT_RANGE);
   const [days, setDays] = useState([]);
   const [readAnswer, setReadAnswer] = useState("");
   const [readLoading, setReadLoading] = useState(false);
@@ -132,14 +161,16 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
     }
   }
 
-  async function loadConditionsForCoords(lat, lng, label) {
+  async function loadConditionsForCoords(lat, lng, label, rangeKey = dateRange) {
     setStatus("loading");
     setErrorMsg("");
     setReadAnswer("");
 
+    const forecastDays = DATE_RANGES[rangeKey]?.forecastDays || DATE_RANGES[DEFAULT_RANGE].forecastDays;
+
     try {
       const forecastRes = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,precipitation_probability&daily=sunrise,sunset&forecast_days=3&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,precipitation_probability&daily=sunrise,sunset&forecast_days=${forecastDays}&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`
       );
       const forecastData = await forecastRes.json();
 
@@ -149,8 +180,9 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
         return;
       }
 
-      const summarized = summarizeForecast(forecastData);
+      const summarized = filterDaysForRange(summarizeForecast(forecastData), rangeKey);
       setResolvedLabel(label);
+      setResolvedCoords({ lat, lng });
       setDays(summarized);
       setStatus("ready");
 
@@ -158,6 +190,13 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
     } catch {
       setStatus("error");
       setErrorMsg("Couldn't load conditions right now. Try again in a minute.");
+    }
+  }
+
+  function handleRangeChange(key) {
+    setDateRange(key);
+    if (resolvedCoords) {
+      loadConditionsForCoords(resolvedCoords.lat, resolvedCoords.lng, resolvedLabel, key);
     }
   }
 
@@ -172,7 +211,7 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
 
     try {
       const geoRes = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(extractSearchTerm(query))}&count=1&language=en&format=json`
       );
       const geoData = await geoRes.json();
       const place = geoData.results?.[0];
@@ -214,7 +253,7 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
 
   const chatContext =
     status === "ready"
-      ? `Trip context: the visitor is planning a ${activity.label.toLowerCase()} trip near ${resolvedLabel}. Here's the 3-day forecast already shown to them on this page:\n${buildForecastSummaryText(resolvedLabel, days)}\n\nUse this naturally if they ask follow-up questions like packing or timing — no need to re-explain the forecast itself.`
+      ? `Trip context: the visitor is planning a ${activity.label.toLowerCase()} trip near ${resolvedLabel}. Here's the forecast already shown to them on this page (${DATE_RANGES[dateRange].label.toLowerCase()}):\n${buildForecastSummaryText(resolvedLabel, days)}\n\nUse this naturally if they ask follow-up questions like packing or timing — no need to re-explain the forecast itself.`
       : "";
 
   return (
@@ -239,6 +278,20 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
           {status === "loading" ? "Checking…" : "Check Conditions"}
         </button>
       </form>
+
+      <div className="trip-range-toggle">
+        {Object.entries(DATE_RANGES).map(([key, r]) => (
+          <button
+            key={key}
+            type="button"
+            className={`trip-range-btn ${dateRange === key ? "active" : ""}`}
+            onClick={() => handleRangeChange(key)}
+            disabled={status === "loading"}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
 
       {status === "error" && <p className="trip-error">{errorMsg}</p>}
 
