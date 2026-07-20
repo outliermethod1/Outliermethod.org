@@ -23,6 +23,9 @@ export const metadata = {
     siteName: "Outlier Method",
     type: "website",
   },
+  other: {
+    "impact-site-verification": "670b82e9-cd45-497c-bcaa-c05817094924",
+  },
 };
 
 const ORGANIZATION_JSON_LD = {
