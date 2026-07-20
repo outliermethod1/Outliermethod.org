@@ -5,7 +5,7 @@ import Hero from "../components/Hero";
 import Campfire from "../components/Campfire";
 import PathsRow from "../components/PathsRow";
 import FieldAudio from "../components/FieldAudio";
-import { Manifesto, ValueStrip, Categories, StateGuides, Footer } from "../components/Sections";
+import { Manifesto, ValueStrip, Categories, StateGuides, LatestFromField, Footer } from "../components/Sections";
 
 export default function Home() {
   return (
@@ -17,6 +17,7 @@ export default function Home() {
       </div>
       <div className="wrap">
         <Hero />
+        <LatestFromField />
         <Manifesto />
         <ValueStrip />
         <Campfire />

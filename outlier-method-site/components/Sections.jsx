@@ -1,4 +1,7 @@
 import { STATES } from "../lib/config";
+import { getAllPosts } from "../lib/posts";
+import { getAllFieldTests } from "../lib/fieldTests";
+import AuthorAvatar from "./AuthorAvatar";
 
 export function Manifesto() {
   return (
@@ -36,6 +39,56 @@ export function ValueStrip() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+export function LatestFromField() {
+  const posts = getAllPosts()
+    .slice(0, 3)
+    .map((post) => ({
+      kind: "blog",
+      href: `/blog/${post.slug}`,
+      title: post.title,
+      category: post.category || "Field Notes",
+      author: post.author,
+      blurb: post.excerpt,
+    }));
+
+  const fieldTests = getAllFieldTests().map((test) => ({
+    kind: "field-test",
+    href: `/field-tests/${test.slug}`,
+    title: test.title,
+    category: `Field Test · ${test.category}`,
+    author: test.author,
+    blurb: test.description,
+  }));
+
+  const items = [...posts, ...fieldTests];
+  if (items.length === 0) return null;
+
+  return (
+    <div className="latest-field">
+      <div className="section-label">
+        <h2 className="display">Latest From the Field</h2>
+        <div className="rule" />
+      </div>
+      <div className="blog-grid">
+        {items.map((item) => (
+          <a key={item.href} href={item.href} className="blog-card">
+            <div className="ft-category">{item.category}</div>
+            <h3 className="display">{item.title}</h3>
+            {item.blurb && <p>{item.blurb}</p>}
+            <div className="b-author">
+              <AuthorAvatar author={item.author} className="avatar-28" />
+              <span>{item.author.name}</span>
+            </div>
+            <span className="b-read">
+              {item.kind === "field-test" ? "Read the Field Test →" : "Read More →"}
+            </span>
+          </a>
+        ))}
+      </div>
     </div>
   );
 }
@@ -171,6 +224,11 @@ export function Footer() {
           <p style={{ marginTop: 8 }}>
             <a href="/disclaimer" style={{ color: "var(--moss-bright)" }}>
               Disclaimer
+            </a>
+          </p>
+          <p style={{ marginTop: 8 }}>
+            <a href="/contact" style={{ color: "var(--moss-bright)" }}>
+              Contact
             </a>
           </p>
         </div>
