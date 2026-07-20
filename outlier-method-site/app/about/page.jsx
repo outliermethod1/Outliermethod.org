@@ -39,6 +39,11 @@ export default function About() {
                   ships under his judgment — nothing goes up that he wouldn&apos;t stake
                   his own trip on.
                 </p>
+                <p className="author-box-bio" style={{ marginTop: 10 }}>
+                  <a href="tel:+17192701280" style={{ color: "var(--moss-bright)" }}>
+                    📞 (719) 270-1280
+                  </a>
+                </p>
               </div>
             </div>
           </div>

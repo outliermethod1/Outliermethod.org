@@ -149,6 +149,11 @@ export function Footer() {
             just the experts.
           </p>
           <p style={{ marginTop: 8 }}>
+            <a href="tel:+17192701280" style={{ color: "var(--cream-dim)" }}>
+              📞 (719) 270-1280
+            </a>
+          </p>
+          <p style={{ marginTop: 8 }}>
             <a href="/about" style={{ color: "var(--moss-bright)" }}>
               Learn more about our mission →
             </a>

@@ -30,6 +30,7 @@ const ORGANIZATION_JSON_LD = {
   "@type": "Organization",
   name: "Outlier Method",
   url: "https://outliermethod.org",
+  telephone: "+1-719-270-1280",
   founder: {
     "@type": "Person",
     name: "Ryan Lynch",
