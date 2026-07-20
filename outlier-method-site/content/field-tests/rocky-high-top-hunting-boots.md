@@ -19,6 +19,9 @@ pros:
 cons:
   - "Not a technical mountaineering boot — pick the taller high-top when terrain gets genuinely rough"
   - "Break-in period exists like any boot, though shorter than most"
+notFor:
+  - "The lower high-top isn't enough support for genuinely technical terrain — size up to the taller boot"
+  - "Not a replacement for a true mountaineering boot"
 affiliateLink: ""
 description: "Rocky's high-top hunting boots deliver comfort and ankle support that boots twice the price don't match."
 ---

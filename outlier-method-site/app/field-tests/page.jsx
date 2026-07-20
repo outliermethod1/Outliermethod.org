@@ -26,6 +26,11 @@ export default function FieldTestsIndex() {
             Gear we&apos;ve actually used — in the field, not just out of the box. If
             it&apos;s here, we&apos;d stake a hunt on it.
           </p>
+          <p className="outlier-standard">
+            Everything here has real field time behind it. We tell you exactly how much
+            — and exactly who should skip it — because that&apos;s the only way a
+            recommendation means anything.
+          </p>
         </div>
 
         {tests.length === 0 ? (

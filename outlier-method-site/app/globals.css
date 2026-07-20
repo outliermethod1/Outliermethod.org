@@ -457,6 +457,10 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
 .blog-head{padding:40px 0 6px;}
 .blog-head h1{font-size:2.2rem;color:var(--cream);letter-spacing:0.02em;}
 .blog-head p{color:var(--cream-dim);font-size:0.95rem;margin-top:10px;max-width:560px;}
+.outlier-standard{
+  border-left:3px solid var(--brass);padding:4px 0 4px 16px;margin-top:16px;
+  font-style:italic;font-size:0.9rem;color:var(--cream-dim);max-width:640px;line-height:1.6;
+}
 .blog-empty{color:var(--cream-dim);padding:30px 0 60px;font-style:italic;}
 .blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:26px 0 60px;}
 .blog-card{
@@ -566,6 +570,18 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
 .pros li,.cons li{padding-left:20px;position:relative;margin-bottom:6px;}
 .pros li::before{content:"+";color:var(--moss-bright);position:absolute;left:0;font-weight:700;}
 .cons li::before{content:"–";color:var(--ember);position:absolute;left:0;font-weight:700;}
+.not-for{
+  margin:0 0 30px;padding:20px 22px;
+  border:1px solid var(--card-border);border-radius:6px;background:var(--pine);
+}
+.not-for h3{
+  font-family:'Arial Narrow',sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.07em;font-size:0.85rem;color:var(--cream);margin-bottom:10px;
+}
+.not-for ul{list-style:none;font-size:0.88rem;color:var(--cream-dim);line-height:1.6;}
+.not-for li{padding-left:20px;position:relative;margin-bottom:6px;}
+.not-for li:last-child{margin-bottom:0;}
+.not-for li::before{content:"✕";color:var(--ember);position:absolute;left:0;font-weight:700;font-size:0.78rem;}
 .affiliate-box{
   margin:30px 0;padding:22px;text-align:center;
   border:1px solid var(--card-border);border-radius:6px;background:var(--pine);

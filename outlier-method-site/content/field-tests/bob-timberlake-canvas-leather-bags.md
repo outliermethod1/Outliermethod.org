@@ -20,6 +20,9 @@ cons:
   - "Secondhand means some shopping patience — condition varies listing to listing"
   - "No warranty — what you see is what you get"
   - "Not currently in production new, so supply depends on the resale market"
+notFor:
+  - "If you want a warranty or guaranteed consistent condition, buy new instead"
+  - "If you're not willing to shop patiently on eBay/Poshmark, this isn't the pick"
 affiliateLink: ""
 description: "Two vintage Bob Timberlake canvas and leather bags, years of field use, and a case for buying old instead of new."
 ---

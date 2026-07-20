@@ -122,6 +122,17 @@ export default function FieldTestPage({ params }) {
             </div>
           </div>
 
+          {test.notFor && test.notFor.length > 0 && (
+            <div className="not-for">
+              <h3>Who This Isn&apos;t For</h3>
+              <ul>
+                {test.notFor.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="affiliate-box">
             {test.affiliateLink ? (
               <a href={test.affiliateLink} className="btn btn-solid" target="_blank" rel="noopener noreferrer sponsored">
