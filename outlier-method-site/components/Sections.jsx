@@ -168,6 +168,11 @@ export function Footer() {
               Affiliate Disclosure
             </a>
           </p>
+          <p style={{ marginTop: 8 }}>
+            <a href="/disclaimer" style={{ color: "var(--moss-bright)" }}>
+              Disclaimer
+            </a>
+          </p>
         </div>
         <div>
           <h4>Popular Topics</h4>
