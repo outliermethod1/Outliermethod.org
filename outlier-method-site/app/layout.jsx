@@ -1,5 +1,4 @@
 import "./globals.css";
-import Script from "next/script";
 
 export const metadata = {
   title: "Outlier Method — The Outdoors Belongs To Everyone.",
@@ -46,10 +45,6 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
         />
         {children}
-        <Script
-          src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=78addbf506a99ba644690e13bb7f4eb163db2bf7"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );
