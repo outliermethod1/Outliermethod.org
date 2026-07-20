@@ -29,7 +29,7 @@ export default function Hero() {
             outside without getting screwed.
           </p>
           <div>
-            <a href="/gear" className="btn btn-solid">
+            <a href="/field-tests" className="btn btn-solid">
               Browse Gear
             </a>
             <a href="/blog" className="btn btn-ghost">

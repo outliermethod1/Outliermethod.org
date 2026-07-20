@@ -42,7 +42,7 @@ export function ValueStrip() {
 
 export function Categories() {
   const cats = [
-    { id: "products", icon: "🛻", bg: "radial-gradient(circle at 50% 40%, #3d4d35 0%, #1f2a1b 100%)", title: "Trusted Products", text: "Our top picks. Field tested. Honest reviews.", btn: "Shop Gear", href: "/gear" },
+    { id: "products", icon: "🛻", bg: "radial-gradient(circle at 50% 40%, #3d4d35 0%, #1f2a1b 100%)", title: "Trusted Products", text: "Our top picks. Field tested. Honest reviews.", btn: "Shop Gear", href: "/field-tests" },
     { id: "originals", icon: "🧥", bg: "radial-gradient(circle at 50% 40%, #4a3c28 0%, #251e14 100%)", title: "Outlier Originals", text: "Restored classics. Custom gear. Built the Outlier way.", btn: "Shop Originals", href: "/originals" },
     { id: "blog", icon: "🥾", bg: "radial-gradient(circle at 50% 40%, #35483d 0%, #1a2620 100%)", title: "Blog & Adventures", text: "Stories, guides, and hard lessons from the field.", btn: "Read Articles", href: "/blog" },
     { id: "community", icon: "🔥", bg: "radial-gradient(circle at 50% 55%, #55401f 0%, #241a0e 100%)", title: "Message Board", text: "Ask questions. Share wins. Learn from real people.", btn: "Join the Community", href: "/community" },
@@ -167,6 +167,7 @@ export function Footer() {
         <div>
           <h4>Popular Topics</h4>
           <ul>
+            <li><a href="/field-tests">Field Tests</a></li>
             <li><a href="/blog">Public Land Hunting</a></li>
             <li><a href="/blog">Vintage Gear Guides</a></li>
             <li><a href="/blog">Fishing, Started Smart</a></li>

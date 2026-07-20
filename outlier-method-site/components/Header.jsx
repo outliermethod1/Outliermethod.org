@@ -2,6 +2,7 @@ import Weather from "./Weather";
 
 const NAV = [
   { label: "Home", href: "/", active: true },
+  { label: "Field Tests", href: "/field-tests" },
   { label: "Trusted Products", href: "/gear" },
   { label: "Outlier Originals", href: "/originals" },
   { label: "State Guides", href: "/states" },
