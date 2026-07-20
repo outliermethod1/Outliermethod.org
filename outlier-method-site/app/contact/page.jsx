@@ -25,8 +25,9 @@ export default function Contact() {
               Phone: <a href="tel:+17192701280">(719) 270-1280</a>
             </p>
             <p>
-              Email: <a href="mailto:hello@outliermethod.org">hello@outliermethod.org</a>
+              Email: <a href="mailto:mail@outliermethod.org">mail@outliermethod.org</a>
             </p>
+            <p>Mail: Outlier Method, PO Box 4129, Gypsum, CO 81637</p>
           </div>
         </div>
       </div>

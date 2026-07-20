@@ -31,6 +31,14 @@ const ORGANIZATION_JSON_LD = {
   name: "Outlier Method",
   url: "https://outliermethod.org",
   telephone: "+1-719-270-1280",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "PO Box 4129",
+    addressLocality: "Gypsum",
+    addressRegion: "CO",
+    postalCode: "81637",
+    addressCountry: "US",
+  },
   founder: {
     "@type": "Person",
     name: "Ryan Lynch",
