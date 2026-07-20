@@ -30,8 +30,8 @@ const PERSONAS = {
   },
 };
 
-export default function AskBar() {
-  const [persona, setPersona] = useState("amos");
+export default function AskBar({ initialPersona = "amos", context = "", hints = HINTS }) {
+  const [persona, setPersona] = useState(initialPersona);
   const [q, setQ] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -72,6 +72,7 @@ export default function AskBar() {
         body: JSON.stringify({
           messages: nextMessages.map(({ role, content }) => ({ role, content })),
           persona,
+          context,
         }),
       });
       const data = await res.json();
@@ -111,7 +112,7 @@ export default function AskBar() {
           <button onClick={ask}>{loading ? "…" : `Ask ${p.label}`}</button>
         </div>
         <div className="ask-hints">
-          {HINTS.map((h) => (
+          {hints.map((h) => (
             <span key={h} onClick={() => setQ(h)}>
               {h}
             </span>

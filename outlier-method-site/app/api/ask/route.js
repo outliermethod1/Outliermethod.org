@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { buildSystemPrompt, callGuideModel } from "../../../lib/guidePrompts";
 
 /* ============================================================
    ASK AMOS / ELEANOR — API route.
@@ -6,31 +7,6 @@ import { NextResponse } from "next/server";
    Vercel → Project → Settings → Environment Variables.
    Never hardcode the key.
 ============================================================ */
-
-const AMOS_SYSTEM_PROMPT = `You are Amos Flint, the resident guide at OutlierMethod.org.
-Old trapper type. Plainspoken, practical, a little dry. You know public land,
-maps, weather, and gear. You steer people toward proven, field-tested,
-often vintage gear before expensive new gear — "earned, not overspent."
-You're dry-witted and occasionally crack a joke — deadpan trapper humor,
-the odd jab at overpriced modern gear, and once in a while a good-natured
-dig at Eleanor ("Eleanor would tell you to bring the kids along. I'd tell
-you to bring earplugs."). Humor is seasoning, not the meal: lead with
-genuinely useful advice, land a joke maybe every other answer, and never
-at the expense of safety info. Keep answers short, useful, and in character.
-Never invent regulations; tell people to verify seasons/rules with their
-state agency.`;
-
-const ELEANOR_SYSTEM_PROMPT = `You are Eleanor, the resident naturalist at OutlierMethod.org.
-Warm, encouraging outdoorswoman. You focus on families and beginners getting
-outside safely and confidently. You steer people toward proven, practical gear
-before expensive new gear — good sense over big spending. You're warm but
-quick-witted, and on occasion you tease Amos right back ("Amos would tell
-you to use a sixty-year-old rusted knife. It builds character, apparently.").
-Humor is seasoning, not the meal: lead with genuinely useful advice, land a
-joke maybe every other answer, never at the expense of safety info, and keep
-things fun for beginners. Keep answers short, useful, and in character.
-Never invent regulations; tell people to verify seasons/rules with their
-state agency.`;
 
 const PLACEHOLDER_ANSWER =
   "I'm still getting my boots on — the full Ask Amos launches soon. " +
@@ -41,11 +17,13 @@ const TOO_LONG_ANSWER =
   "give me a sentence or two and I'll see what I can do.";
 
 const MAX_MESSAGE_LENGTH = 500;
+const MAX_CONTEXT_LENGTH = 1600;
 const MAX_HISTORY = 12;
 
 export async function POST(request) {
   const body = await request.json();
   const persona = body.persona;
+  const context = typeof body.context === "string" ? body.context.slice(0, MAX_CONTEXT_LENGTH) : "";
 
   const rawMessages = Array.isArray(body.messages)
     ? body.messages
@@ -69,43 +47,15 @@ export async function POST(request) {
     return NextResponse.json({ answer: TOO_LONG_ANSWER }, { status: 400 });
   }
 
-  const systemPrompt = persona === "eleanor" ? ELEANOR_SYSTEM_PROMPT : AMOS_SYSTEM_PROMPT;
-
   if (!process.env.XAI_API_KEY) {
     return NextResponse.json({ answer: PLACEHOLDER_ANSWER });
   }
 
+  const systemPrompt = buildSystemPrompt(persona, context ? [context] : []);
   const history = messages.slice(-MAX_HISTORY);
 
   try {
-    const res = await fetch("https://api.x.ai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.XAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "grok-3-mini",
-        max_tokens: 400,
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...history,
-        ],
-      }),
-    });
-
-    if (!res.ok) {
-      console.error("xAI API error", res.status, await res.text());
-      return NextResponse.json({ answer: PLACEHOLDER_ANSWER });
-    }
-
-    const data = await res.json();
-    const answer = data.choices?.[0]?.message?.content?.trim();
-
-    if (!answer) {
-      return NextResponse.json({ answer: PLACEHOLDER_ANSWER });
-    }
-
+    const answer = await callGuideModel(systemPrompt, history);
     return NextResponse.json({ answer });
   } catch (err) {
     console.error("xAI API error", err);

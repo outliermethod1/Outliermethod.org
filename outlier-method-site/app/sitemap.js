@@ -1,6 +1,7 @@
 import { getAllPosts } from "../lib/posts";
 import { getStateSlugs } from "../lib/states";
 import { getAllFieldTests } from "../lib/fieldTests";
+import { getActivityKeys } from "../lib/tripPlanner";
 
 const BASE_URL = "https://outliermethod.org";
 
@@ -10,6 +11,7 @@ export default function sitemap() {
     { url: `${BASE_URL}/blog`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/field-tests`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/states`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE_URL}/trip-planner`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/contact`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/why-trust-us`, changeFrequency: "monthly", priority: 0.5 },
@@ -40,5 +42,11 @@ export default function sitemap() {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...stateRoutes, ...postRoutes, ...fieldTestRoutes];
+  const tripPlannerRoutes = getActivityKeys().map((activity) => ({
+    url: `${BASE_URL}/trip-planner/${activity}`,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...stateRoutes, ...postRoutes, ...fieldTestRoutes, ...tripPlannerRoutes];
 }

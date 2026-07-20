@@ -46,6 +46,9 @@ export default function Campfire() {
           <a href="#live">Watch Live →</a>
         </div>
       </div>
+      <a href="/trip-planner" className="campfire-banner">
+        Heading out soon? Check your trip weather before you go →
+      </a>
     </div>
   );
 }

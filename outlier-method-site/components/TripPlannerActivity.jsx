@@ -1,0 +1,240 @@
+"use client";
+import { useState } from "react";
+import AuthorAvatar from "./AuthorAvatar";
+import AskBar from "./AskBar";
+import { resolveAuthor } from "../lib/authors";
+import { getActivity } from "../lib/tripPlanner";
+
+const PERSONA_LABEL = { amos: "Amos", eleanor: "Eleanor" };
+
+const WIND_COMPASS = [
+  "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+  "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW",
+];
+
+function degToCompass(deg) {
+  return WIND_COMPASS[Math.round(deg / 22.5) % 16];
+}
+
+function formatTime(isoLocal) {
+  if (!isoLocal) return "—";
+  const time = isoLocal.split("T")[1];
+  if (!time) return "—";
+  let [h, m] = time.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+function formatDayLabel(dateStr) {
+  const d = new Date(`${dateStr}T12:00:00`);
+  return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+}
+
+function summarizeForecast(data) {
+  const { hourly, daily } = data;
+  const byDate = {};
+  hourly.time.forEach((ts, i) => {
+    const date = ts.slice(0, 10);
+    if (!byDate[date]) byDate[date] = { temps: [], winds: [], windDirs: [], precs: [] };
+    byDate[date].temps.push(hourly.temperature_2m[i]);
+    byDate[date].winds.push(hourly.wind_speed_10m[i]);
+    byDate[date].windDirs.push(hourly.wind_direction_10m[i]);
+    byDate[date].precs.push(hourly.precipitation_probability[i]);
+  });
+
+  return daily.time.map((date, i) => {
+    const d = byDate[date];
+    const tempMax = d ? Math.round(Math.max(...d.temps)) : null;
+    const tempMin = d ? Math.round(Math.min(...d.temps)) : null;
+    const windSpeed = d ? Math.round(d.winds.reduce((a, b) => a + b, 0) / d.winds.length) : null;
+    const windDir = d ? degToCompass(d.windDirs.reduce((a, b) => a + b, 0) / d.windDirs.length) : "";
+    const precipChance = d ? Math.round(Math.max(...d.precs)) : null;
+    return {
+      date,
+      tempMax,
+      tempMin,
+      windSpeed,
+      windDir,
+      precipChance,
+      sunrise: daily.sunrise[i],
+      sunset: daily.sunset[i],
+    };
+  });
+}
+
+function buildForecastSummaryText(locationLabel, days) {
+  const lines = days.map(
+    (d) =>
+      `${formatDayLabel(d.date)}: High ${d.tempMax}°F / Low ${d.tempMin}°F, wind ${d.windSpeed} mph ${d.windDir}, ${d.precipChance}% chance of precipitation, sunrise ${formatTime(d.sunrise)}, sunset ${formatTime(d.sunset)}.`
+  );
+  return `Location: ${locationLabel}\n${lines.join("\n")}`;
+}
+
+export default function TripPlannerActivity({ activityKey }) {
+  const activity = getActivity(activityKey);
+
+  const [location, setLocation] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | loading | error | ready
+  const [errorMsg, setErrorMsg] = useState("");
+  const [resolvedLabel, setResolvedLabel] = useState("");
+  const [days, setDays] = useState([]);
+  const [readAnswer, setReadAnswer] = useState("");
+  const [readLoading, setReadLoading] = useState(false);
+
+  const personaAuthor = resolveAuthor(activity.persona);
+  const personaLabel = PERSONA_LABEL[activity.persona] || personaAuthor.name;
+
+  async function fetchRead(label, summarizedDays) {
+    setReadLoading(true);
+    try {
+      const res = await fetch("/api/trip-weather-read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          activity: activity.key,
+          location: label,
+          forecastSummary: buildForecastSummaryText(label, summarizedDays),
+        }),
+      });
+      const data = await res.json();
+      setReadAnswer(data.answer || "");
+    } catch {
+      setReadAnswer("");
+    } finally {
+      setReadLoading(false);
+    }
+  }
+
+  async function checkConditions(e) {
+    e.preventDefault();
+    const query = location.trim();
+    if (!query || status === "loading") return;
+
+    setStatus("loading");
+    setErrorMsg("");
+    setReadAnswer("");
+
+    try {
+      const geoRes = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`
+      );
+      const geoData = await geoRes.json();
+      const place = geoData.results?.[0];
+
+      if (!place) {
+        setStatus("error");
+        setErrorMsg('Couldn’t find that location — try a city and state, like "Gunnison, CO."');
+        return;
+      }
+
+      const label = [place.name, place.admin1].filter(Boolean).join(", ");
+
+      const forecastRes = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,precipitation_probability&daily=sunrise,sunset&forecast_days=3&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`
+      );
+      const forecastData = await forecastRes.json();
+
+      if (!forecastData.hourly || !forecastData.daily) {
+        setStatus("error");
+        setErrorMsg("Couldn't load conditions for that spot. Try again in a minute.");
+        return;
+      }
+
+      const summarized = summarizeForecast(forecastData);
+      setResolvedLabel(label);
+      setDays(summarized);
+      setStatus("ready");
+
+      fetchRead(label, summarized);
+    } catch {
+      setStatus("error");
+      setErrorMsg("Couldn't load conditions right now. Try again in a minute.");
+    }
+  }
+
+  const chatContext =
+    status === "ready"
+      ? `Trip context: the visitor is planning a ${activity.label.toLowerCase()} trip near ${resolvedLabel}. Here's the 3-day forecast already shown to them on this page:\n${buildForecastSummaryText(resolvedLabel, days)}\n\nUse this naturally if they ask follow-up questions like packing or timing — no need to re-explain the forecast itself.`
+      : "";
+
+  return (
+    <>
+      <div className="blog-head">
+        <div className="trip-persona-tag">
+          <AuthorAvatar author={personaAuthor} className="avatar-28" />
+          <span>{personaAuthor.name} · {activity.label} Guide</span>
+        </div>
+        <h1 className="display">{activity.label} Trip Planner</h1>
+        <p>{activity.blurb}</p>
+      </div>
+
+      <form className="trip-form" onSubmit={checkConditions}>
+        <input
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="City and state, e.g. Gunnison, CO"
+        />
+        <button type="submit" disabled={status === "loading"}>
+          {status === "loading" ? "Checking…" : "Check Conditions"}
+        </button>
+      </form>
+
+      {status === "error" && <p className="trip-error">{errorMsg}</p>}
+
+      {status === "ready" && (
+        <>
+          <div className="trip-location">{resolvedLabel}</div>
+          <div className="trip-forecast">
+            {days.map((d) => (
+              <div className="trip-day" key={d.date}>
+                <div className="trip-day-label">{formatDayLabel(d.date)}</div>
+                <div className="trip-day-temp">{d.tempMax}° / {d.tempMin}°</div>
+                <div className="trip-day-row">
+                  <span>Wind</span>
+                  <span>{d.windSpeed} mph {d.windDir}</span>
+                </div>
+                <div className="trip-day-row">
+                  <span>Precip</span>
+                  <span>{d.precipChance}%</span>
+                </div>
+                <div className="trip-day-row">
+                  <span>Sunrise</span>
+                  <span>{formatTime(d.sunrise)}</span>
+                </div>
+                <div className="trip-day-row">
+                  <span>Sunset</span>
+                  <span>{formatTime(d.sunset)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="trip-read">
+            <div className="trip-read-head">
+              <AuthorAvatar author={personaAuthor} className="avatar-sm" />
+              <div>
+                <div className="trip-read-name">{personaLabel}&apos;s Read</div>
+                <div className="trip-read-role">{personaAuthor.role}</div>
+              </div>
+            </div>
+            <div className="trip-read-body">
+              {readLoading ? (
+                <p className="ft-verdict">{personaLabel} is reading the conditions…</p>
+              ) : (
+                <p>{readAnswer || "No read available right now — check back in a minute."}</p>
+              )}
+            </div>
+          </div>
+
+          <p className="trip-disclaimer">
+            General field advice — not a substitute for official forecasts or agency guidance.
+          </p>
+
+          <AskBar initialPersona={activity.persona} context={chatContext} hints={activity.chatHints} />
+        </>
+      )}
+    </>
+  );
+}

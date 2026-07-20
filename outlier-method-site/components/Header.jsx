@@ -6,6 +6,7 @@ const NAV = [
   { label: "Trusted Products", href: "/gear" },
   { label: "Outlier Originals", href: "/originals" },
   { label: "State Guides", href: "/states" },
+  { label: "Trip Planner", href: "/trip-planner" },
   { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },
 ];
