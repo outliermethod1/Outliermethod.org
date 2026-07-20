@@ -187,6 +187,9 @@ export function StateGuides() {
           <div className="st-tags">Explore the map →</div>
         </a>
       </div>
+      <a href="/map" className="campfire-banner">
+        Explore the Interactive Map →
+      </a>
     </div>
   );
 }

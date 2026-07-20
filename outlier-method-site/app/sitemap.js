@@ -12,6 +12,7 @@ export default function sitemap() {
     { url: `${BASE_URL}/field-tests`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/states`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/trip-planner`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE_URL}/map`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/contact`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE_URL}/why-trust-us`, changeFrequency: "monthly", priority: 0.5 },

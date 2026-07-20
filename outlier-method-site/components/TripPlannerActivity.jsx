@@ -1,9 +1,35 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthorAvatar from "./AuthorAvatar";
 import AskBar from "./AskBar";
 import { resolveAuthor } from "../lib/authors";
 import { getActivity } from "../lib/tripPlanner";
+
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+function formatCoordsLabel(lat, lng) {
+  const latDir = lat >= 0 ? "N" : "S";
+  const lngDir = lng >= 0 ? "E" : "W";
+  return `${Math.abs(lat).toFixed(3)}°${latDir}, ${Math.abs(lng).toFixed(3)}°${lngDir}`;
+}
+
+// Open-Meteo's geocoding API only does forward lookups (name -> coords), so a
+// pin dropped on the map (coords -> name) goes through Mapbox's geocoder
+// instead, since we already carry that token for the map itself. Falls back
+// to raw coordinates exactly like a failed Open-Meteo lookup would.
+async function reverseGeocodeCoords(lat, lng) {
+  if (!MAPBOX_TOKEN) return null;
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=place,region`
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.features?.[0]?.place_name || null;
+  } catch {
+    return null;
+  }
+}
 
 const PERSONA_LABEL = { amos: "Amos", eleanor: "Eleanor" };
 
@@ -71,7 +97,7 @@ function buildForecastSummaryText(locationLabel, days) {
   return `Location: ${locationLabel}\n${lines.join("\n")}`;
 }
 
-export default function TripPlannerActivity({ activityKey }) {
+export default function TripPlannerActivity({ activityKey, initialLat = null, initialLng = null }) {
   const activity = getActivity(activityKey);
 
   const [location, setLocation] = useState("");
@@ -106,6 +132,35 @@ export default function TripPlannerActivity({ activityKey }) {
     }
   }
 
+  async function loadConditionsForCoords(lat, lng, label) {
+    setStatus("loading");
+    setErrorMsg("");
+    setReadAnswer("");
+
+    try {
+      const forecastRes = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,precipitation_probability&daily=sunrise,sunset&forecast_days=3&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`
+      );
+      const forecastData = await forecastRes.json();
+
+      if (!forecastData.hourly || !forecastData.daily) {
+        setStatus("error");
+        setErrorMsg("Couldn't load conditions for that spot. Try again in a minute.");
+        return;
+      }
+
+      const summarized = summarizeForecast(forecastData);
+      setResolvedLabel(label);
+      setDays(summarized);
+      setStatus("ready");
+
+      fetchRead(label, summarized);
+    } catch {
+      setStatus("error");
+      setErrorMsg("Couldn't load conditions right now. Try again in a minute.");
+    }
+  }
+
   async function checkConditions(e) {
     e.preventDefault();
     const query = location.trim();
@@ -129,29 +184,33 @@ export default function TripPlannerActivity({ activityKey }) {
       }
 
       const label = [place.name, place.admin1].filter(Boolean).join(", ");
-
-      const forecastRes = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,precipitation_probability&daily=sunrise,sunset&forecast_days=3&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`
-      );
-      const forecastData = await forecastRes.json();
-
-      if (!forecastData.hourly || !forecastData.daily) {
-        setStatus("error");
-        setErrorMsg("Couldn't load conditions for that spot. Try again in a minute.");
-        return;
-      }
-
-      const summarized = summarizeForecast(forecastData);
-      setResolvedLabel(label);
-      setDays(summarized);
-      setStatus("ready");
-
-      fetchRead(label, summarized);
+      await loadConditionsForCoords(place.latitude, place.longitude, label);
     } catch {
       setStatus("error");
       setErrorMsg("Couldn't load conditions right now. Try again in a minute.");
     }
   }
+
+  // Arrived from a map pin (?lat=&lng=) — pre-fill the location and check
+  // conditions right away instead of making the visitor retype what they
+  // already picked on the map.
+  useEffect(() => {
+    if (initialLat == null || initialLng == null) return;
+
+    let cancelled = false;
+    (async () => {
+      const name = await reverseGeocodeCoords(initialLat, initialLng);
+      if (cancelled) return;
+      const label = name || formatCoordsLabel(initialLat, initialLng);
+      setLocation(label);
+      loadConditionsForCoords(initialLat, initialLng, label);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLat, initialLng]);
 
   const chatContext =
     status === "ready"

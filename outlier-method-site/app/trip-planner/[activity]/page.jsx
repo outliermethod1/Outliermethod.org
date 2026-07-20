@@ -20,9 +20,12 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function TripPlannerActivityPage({ params }) {
+export default function TripPlannerActivityPage({ params, searchParams }) {
   const activity = ACTIVITIES[params.activity];
   if (!activity) notFound();
+
+  const lat = searchParams?.lat ? parseFloat(searchParams.lat) : null;
+  const lng = searchParams?.lng ? parseFloat(searchParams.lng) : null;
 
   return (
     <>
@@ -32,7 +35,11 @@ export default function TripPlannerActivityPage({ params }) {
         <a href="/trip-planner" className="post-back">
           ← All Trip Types
         </a>
-        <TripPlannerActivity activityKey={params.activity} />
+        <TripPlannerActivity
+          activityKey={params.activity}
+          initialLat={Number.isFinite(lat) ? lat : null}
+          initialLng={Number.isFinite(lng) ? lng : null}
+        />
       </div>
       <Footer />
       <FieldAudio />

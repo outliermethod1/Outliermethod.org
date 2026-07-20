@@ -10,7 +10,11 @@ export const metadata = {
     "Know before you go. Pick your trip, tell us where, get real conditions and a straight read from someone who's been there.",
 };
 
-export default function TripPlannerIndex() {
+export default function TripPlannerIndex({ searchParams }) {
+  const lat = searchParams?.lat;
+  const lng = searchParams?.lng;
+  const locationQuery = lat && lng ? `?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}` : "";
+
   return (
     <>
       <Ticker />
@@ -22,11 +26,20 @@ export default function TripPlannerIndex() {
             Know before you go. Pick your trip, tell us where, get real conditions and
             a straight read from someone who&apos;s been there.
           </p>
+          {locationQuery && (
+            <p className="state-note" style={{ marginTop: 8 }}>
+              Using the spot you picked on the map — choose an activity below.
+            </p>
+          )}
         </div>
 
         <div className="trip-grid">
           {Object.values(ACTIVITIES).map((activity) => (
-            <a key={activity.key} href={`/trip-planner/${activity.key}`} className="trip-card">
+            <a
+              key={activity.key}
+              href={`/trip-planner/${activity.key}${locationQuery}`}
+              className="trip-card"
+            >
               <div className="trip-icon">{activity.icon}</div>
               <h2 className="display">{activity.label}</h2>
               <p>{activity.blurb}</p>
