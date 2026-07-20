@@ -634,6 +634,17 @@ nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-brigh
 .trip-read-body p{color:var(--cream-dim);line-height:1.7;font-size:0.95rem;}
 .trip-disclaimer{font-size:0.72rem;color:var(--cream-dim);font-style:italic;margin:14px 0 26px;}
 
+/* Trip-planner chat — same card treatment as .trip-read, with the embedded
+   AskBar's own full-bleed bar styling stripped so it merges into one card
+   instead of sitting as a second, differently-styled section underneath. */
+.trip-chat{background:var(--pine);border:1px solid var(--card-border);border-radius:6px;padding:22px;margin-bottom:30px;}
+.trip-chat-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.trip-chat .ask-amos{background:transparent;border-bottom:none;padding:0;}
+.trip-chat .ask-inner{max-width:none;margin:0;padding:0;}
+.trip-chat .ask-thread-head{max-width:none;margin:10px 0 0;padding:0;}
+.trip-chat .ask-thread{max-width:none;margin:8px 0 0;padding:6px 0 2px;}
+.trip-chat .guides-note{max-width:none;margin:10px 0 0;padding:0;text-align:left;}
+
 /* ============ OUTLIER MAP ============ */
 .outlier-map-wrap{
   position:relative;width:100%;height:640px;background:var(--ink);

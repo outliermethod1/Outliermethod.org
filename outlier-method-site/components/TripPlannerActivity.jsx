@@ -124,6 +124,17 @@ function buildForecastSummaryText(locationLabel, days) {
   return `Location: ${locationLabel}\n${lines.join("\n")}`;
 }
 
+// The chat's very first visible message — makes it obvious the guide already
+// knows the location/activity/forecast instead of opening blank like the
+// homepage bar.
+function buildOpeningMessage(personaLabel, activityLabelLower, label, rangeLabel, days) {
+  const first = days[0];
+  const conditions = first
+    ? ` Looks like ${first.tempMax}°/${first.tempMin}° with wind out of the ${first.windDir} around ${first.windSpeed} mph, ${first.precipChance}% chance of rain.`
+    : "";
+  return `${personaLabel} here — you're checking ${activityLabelLower} conditions near ${label} (${rangeLabel.toLowerCase()}).${conditions} Ask me anything about gear, timing, or what to expect out there.`;
+}
+
 export default function TripPlannerActivity({ activityKey, initialLat = null, initialLng = null }) {
   const activity = getActivity(activityKey);
 
@@ -256,6 +267,11 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
       ? `Trip context: the visitor is planning a ${activity.label.toLowerCase()} trip near ${resolvedLabel}. Here's the forecast already shown to them on this page (${DATE_RANGES[dateRange].label.toLowerCase()}):\n${buildForecastSummaryText(resolvedLabel, days)}\n\nUse this naturally if they ask follow-up questions like packing or timing — no need to re-explain the forecast itself.`
       : "";
 
+  const chatOpeningMessage =
+    status === "ready"
+      ? buildOpeningMessage(personaLabel, activity.label.toLowerCase(), resolvedLabel, DATE_RANGES[dateRange].label, days)
+      : "";
+
   return (
     <>
       <div className="blog-head">
@@ -344,7 +360,23 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
             General field advice — not a substitute for official forecasts or agency guidance.
           </p>
 
-          <AskBar initialPersona={activity.persona} context={chatContext} hints={activity.chatHints} />
+          <div className="trip-chat">
+            <div className="trip-chat-head">
+              <AuthorAvatar author={personaAuthor} className="avatar-sm" />
+              <div>
+                <div className="trip-read-name">Ask {personaLabel} About This Trip</div>
+                <div className="trip-read-role">{personaAuthor.role}</div>
+              </div>
+            </div>
+            <AskBar
+              initialPersona={activity.persona}
+              context={chatContext}
+              hints={activity.chatHints}
+              showPersonaChips={false}
+              openingMessage={chatOpeningMessage}
+              note={`${personaLabel} is locked in as your guide for this trip — ask about gear, timing, or anything else.`}
+            />
+          </div>
         </>
       )}
     </>

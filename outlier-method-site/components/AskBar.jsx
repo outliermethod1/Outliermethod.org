@@ -30,10 +30,23 @@ const PERSONAS = {
   },
 };
 
-export default function AskBar({ initialPersona = "amos", context = "", hints = HINTS }) {
+const DEFAULT_NOTE =
+  "Amos and Eleanor are our AI field guides — ask them about gear, public land, " +
+  "tactics, or getting started. Real advice, campfire delivery.";
+
+export default function AskBar({
+  initialPersona = "amos",
+  context = "",
+  hints = HINTS,
+  showPersonaChips = true,
+  openingMessage = "",
+  note = DEFAULT_NOTE,
+}) {
   const [persona, setPersona] = useState(initialPersona);
   const [q, setQ] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() =>
+    openingMessage ? [{ role: "assistant", content: openingMessage, persona: initialPersona }] : []
+  );
   const [loading, setLoading] = useState(false);
   const threadRef = useRef(null);
 
@@ -119,28 +132,27 @@ export default function AskBar({ initialPersona = "amos", context = "", hints = 
           ))}
         </div>
       </div>
-      <div className="persona-chips">
-        {Object.entries(PERSONAS).map(([key, entry]) => (
-          <button
-            key={key}
-            className={`persona-chip ${persona === key ? "active" : ""}`}
-            onClick={() => setPersona(key)}
-          >
-            <div className={`avatar ${entry.avatarClass} avatar-chip`}>
-              <img src={entry.img} alt={entry.alt} onError={(e) => { e.currentTarget.style.display = "none"; }} />
-              <span className="avatar-fallback">{entry.fallback}</span>
-            </div>
-            <div className="chip-meta">
-              <div className="chip-name display">{entry.name}</div>
-              <div className="chip-role">{entry.role}</div>
-            </div>
-          </button>
-        ))}
-      </div>
-      <p className="guides-note">
-        Amos and Eleanor are our AI field guides — ask them about gear, public land,
-        tactics, or getting started. Real advice, campfire delivery.
-      </p>
+      {showPersonaChips && (
+        <div className="persona-chips">
+          {Object.entries(PERSONAS).map(([key, entry]) => (
+            <button
+              key={key}
+              className={`persona-chip ${persona === key ? "active" : ""}`}
+              onClick={() => setPersona(key)}
+            >
+              <div className={`avatar ${entry.avatarClass} avatar-chip`}>
+                <img src={entry.img} alt={entry.alt} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                <span className="avatar-fallback">{entry.fallback}</span>
+              </div>
+              <div className="chip-meta">
+                <div className="chip-name display">{entry.name}</div>
+                <div className="chip-role">{entry.role}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      <p className="guides-note">{note}</p>
 
       {messages.length > 0 && (
         <>
