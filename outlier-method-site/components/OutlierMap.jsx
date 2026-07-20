@@ -58,6 +58,9 @@ export default function OutlierMap() {
   const [showPublicLand, setShowPublicLand] = useState(false);
   const [publicLand, setPublicLand] = useState(null);
   const [publicLandStatus, setPublicLandStatus] = useState("idle");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
   const mapRef = useRef(null);
 
   const camMarkers = useMemo(
@@ -116,6 +119,39 @@ export default function OutlierMap() {
     });
   }
 
+  async function handleSearchSubmit(e) {
+    e.preventDefault();
+    const query = searchQuery.trim();
+    if (!query || searchLoading) return;
+
+    setSearchLoading(true);
+    setSearchError("");
+
+    try {
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}`
+      );
+      const data = await res.json();
+      const place = data.features?.[0];
+
+      if (!place) {
+        setSearchError('Couldn’t find that place — try a different search, like "Moab, UT."');
+        return;
+      }
+
+      const [lng, lat] = place.center;
+      const map = mapRef.current?.getMap();
+      if (map) {
+        map.flyTo({ center: [lng, lat], zoom: 10.5 });
+      }
+      setPopup(null);
+    } catch {
+      setSearchError("Couldn't search right now. Try again in a minute.");
+    } finally {
+      setSearchLoading(false);
+    }
+  }
+
   async function handleMapClick(e) {
     const { lng, lat } = e.lngLat;
     setPopup({ kind: "trip", longitude: lng, latitude: lat, label: formatCoords(lat, lng) });
@@ -142,6 +178,21 @@ export default function OutlierMap() {
 
   return (
     <div className="outlier-map-wrap">
+      <div className="map-search">
+        <form onSubmit={handleSearchSubmit}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search a city or place..."
+          />
+          <button type="submit" aria-label="Search" disabled={searchLoading}>
+            {searchLoading ? "…" : "🔍"}
+          </button>
+        </form>
+        {searchError && <p className="map-search-error">{searchError}</p>}
+      </div>
+
       <div className="map-controls">
         <div className="map-style-toggle">
           {Object.entries(STYLES).map(([key, s]) => (
