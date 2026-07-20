@@ -173,7 +173,7 @@ export default function OutlierMap() {
         onClick={handleMapClick}
         onMoveEnd={handleMoveEnd}
       >
-        <NavigationControl position="top-right" />
+        <NavigationControl position="bottom-right" />
 
         {showPublicLand && publicLand && (
           <Source id="blm-public-land" type="geojson" data={publicLand}>
