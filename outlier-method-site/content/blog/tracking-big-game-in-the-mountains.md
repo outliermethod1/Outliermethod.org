@@ -5,6 +5,7 @@ author: "jesse"
 category: "Big Game"
 description: "Most hunters walk past more sign than they ever find. Learn to read it instead of just walking and hoping."
 excerpt: "Most hunters walk past more sign than they ever find. Learn to read it instead of just walking and hoping."
+podcastEpisode: "Tom Tobin and the Bloody Espinozas"
 ---
 
 Most hunters walk right past more sign than they ever actually find. They're looking at the trail in front of their boots instead of reading the ground like it's telling them something — which it is, every single day, whether anybody's paying attention or not. I've spent enough seasons in Colorado's high country to know the mountain does the talking. Your job is just to shut up and listen to it.

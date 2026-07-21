@@ -4,6 +4,7 @@ date: "2026-07-18"
 author: "amos"
 excerpt: "Two apex predators, two totally different reactions to a trail cam — and neither one is the dumb one."
 tags: ["wildlife", "trail cams"]
+podcastEpisode: "Beck Weathers Survival Series"
 ---
 
 Put a trail cam on a game trail in wolf country and you'll get one of two results. Either you catch nothing but empty frames for three weeks straight, or you get a single photo of a wolf standing dead still, head cocked, staring into the lens like it just caught you saying something ugly at a family dinner. Then it's gone. Doesn't come back down that trail for a month, sometimes longer.

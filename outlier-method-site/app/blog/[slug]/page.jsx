@@ -90,6 +90,14 @@ export default function BlogPost({ params }) {
             </div>
           </div>
           <div className="post-body" dangerouslySetInnerHTML={{ __html: post.html }} />
+
+          {post.podcastEpisode && (
+            <a href="/podcast" className="podcast-callout">
+              🎙 Related: listen to <strong>{post.podcastEpisode}</strong> on the Outlier
+              Method Podcast →
+            </a>
+          )}
+
           <div className="author-box">
             <AuthorAvatar author={post.author} className="avatar-64" />
             <div>
