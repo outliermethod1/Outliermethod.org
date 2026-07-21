@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
 import Weather from "./Weather";
 
 const NAV = [
@@ -14,6 +16,26 @@ const NAV = [
 ];
 
 export default function Header() {
+  const [open, setOpen] = useState(false);
+  const panelRef = useRef(null);
+  const toggleRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handleClickOutside(e) {
+      if (
+        panelRef.current && !panelRef.current.contains(e.target) &&
+        toggleRef.current && !toggleRef.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
   return (
     <header>
       <div className="header-inner">
@@ -32,7 +54,31 @@ export default function Header() {
           ))}
         </nav>
         <Weather />
+        <button
+          ref={toggleRef}
+          type="button"
+          className="mobile-nav-toggle"
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? "✕" : "☰"}
+        </button>
       </div>
+      {open && (
+        <div className="mobile-nav-panel" ref={panelRef}>
+          {NAV.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className={item.active ? "active" : ""}
+              onClick={() => setOpen(false)}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      )}
     </header>
   );
 }

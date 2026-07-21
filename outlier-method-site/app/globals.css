@@ -79,6 +79,8 @@ nav a{
   padding-bottom:4px;border-bottom:2px solid transparent;transition:all .2s;
 }
 nav a:hover,nav a.active{color:var(--cream);border-bottom-color:var(--moss-bright);}
+.mobile-nav-toggle{display:none;}
+.mobile-nav-panel{display:none;}
 
 /* Weather widget */
 .weather{
@@ -858,6 +860,25 @@ footer a:hover{color:var(--cream);}
 }
 @media(max-width:640px){
   nav{display:none;}
+  .mobile-nav-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    background:transparent;border:1px solid var(--card-border);border-radius:5px;
+    color:var(--cream);font-size:1.3rem;line-height:1;width:38px;height:38px;
+    cursor:pointer;margin-left:auto;flex-shrink:0;transition:all .15s;
+  }
+  .mobile-nav-toggle:hover{border-color:var(--brass);color:var(--brass);}
+  .mobile-nav-panel{
+    display:flex;flex-direction:column;
+    background:var(--ink);border-top:1px solid var(--card-border);
+    padding:6px 22px 14px;
+  }
+  .mobile-nav-panel a{
+    font-family:'Arial Narrow',sans-serif;font-weight:700;text-transform:uppercase;
+    letter-spacing:0.07em;font-size:0.9rem;color:var(--cream-dim);
+    padding:13px 0;border-bottom:1px solid var(--card-border);
+  }
+  .mobile-nav-panel a:last-child{border-bottom:none;}
+  .mobile-nav-panel a:hover,.mobile-nav-panel a.active{color:var(--brass);}
   .hero-copy h1{font-size:2.3rem;}
   .cards-row{grid-template-columns:1fr;}
   .featured-stack{flex-direction:column;}
