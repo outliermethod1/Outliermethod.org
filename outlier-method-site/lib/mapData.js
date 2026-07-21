@@ -9,10 +9,12 @@
 // Orvis's Manchester, VT headquarters as the most defensible stand-in.
 export const CAM_COORDS = {
   "Brooks Falls Bears": { latitude: 58.6199, longitude: -155.8000 },
-  "Elk Country": { latitude: 41.3376, longitude: -78.1408 },
+  "Rocky Mountain Elk Trail Cam": { latitude: 41.3376, longitude: -78.1408 },
   "Whitetail Woods": { latitude: 39.9284, longitude: -79.7256 },
   "Orvis Guide: Small Ponds & Rivers": { latitude: 43.1687, longitude: -72.9973 },
-  "Henry's Fork Fly Water": { latitude: 44.4741, longitude: -111.3897 },
+  // Gardiner, MT — where the Yellowstone River exits the park, a well-known
+  // whitewater stretch. Replaces the old Henry's Fork (Idaho) coordinates.
+  "Yellowstone River Whitewater": { latitude: 45.0326, longitude: -110.7028 },
   "Wolf Country": { latitude: 47.9032, longitude: -91.8471 },
 };
 
