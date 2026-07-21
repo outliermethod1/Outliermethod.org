@@ -2,6 +2,8 @@ import Ticker from "../../components/Ticker";
 import Header from "../../components/Header";
 import FieldAudio from "../../components/FieldAudio";
 import { Footer } from "../../components/Sections";
+import { getPodcastEpisodes } from "../../lib/podcast";
+import { formatDate } from "../../lib/posts";
 
 export const metadata = {
   title: "The Outlier Method Podcast — Outlier Method",
@@ -9,35 +11,11 @@ export const metadata = {
     "The Outlier Mindset for the Modern Man — frontier history, survival stories, and grit, every week.",
 };
 
-const EPISODES = [
-  {
-    title: "Tom Tobin and the Bloody Espinozas",
-    description:
-      "The frontier tracker who rode down Colorado's most feared outlaw brothers — and what it took to actually catch them.",
-  },
-  {
-    title: "John Wesley Hardin",
-    description:
-      "One of the Old West's most notorious and complicated gunfighters, and the code he claimed justified it all.",
-  },
-  {
-    title: "The Musashi-Inspired Interview",
-    description:
-      "A conversation on discipline, mastery, and the way of the swordsman, pulled from Miyamoto Musashi's philosophy.",
-  },
-  {
-    title: "Beck Weathers Survival Series",
-    description:
-      "Left for dead on Everest, he walked off the mountain anyway. What survival instinct actually looks like under the worst conditions.",
-  },
-  {
-    title: "Stephen Callahan's Survival Story",
-    description:
-      "Seventy-six days adrift alone in a life raft in the Atlantic — and the resourcefulness it took to outlast the odds.",
-  },
-];
+const SHOW_URL = "https://podcasts.apple.com/us/podcast/outlier-method-podcast/id1854463835";
 
-export default function PodcastPage() {
+export default async function PodcastPage() {
+  const episodes = await getPodcastEpisodes();
+
   return (
     <>
       <Ticker />
@@ -75,7 +53,7 @@ export default function PodcastPage() {
               Listen on Spotify →
             </a>
             <a
-              href="https://podcasts.apple.com/us/podcast/outlier-method-podcast/id1854463835"
+              href={SHOW_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-ghost"
@@ -85,22 +63,32 @@ export default function PodcastPage() {
           </div>
         </div>
 
-        <div className="blog-grid">
-          {EPISODES.map((ep) => (
-            <a
-              key={ep.title}
-              href="https://podcasts.apple.com/us/podcast/outlier-method-podcast/id1854463835"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="blog-card"
-            >
-              <div className="ft-category">Episode</div>
-              <h2 className="display">{ep.title}</h2>
-              <p>{ep.description}</p>
-              <span className="b-read">🎙 Listen on Apple Podcasts →</span>
+        {episodes.length === 0 ? (
+          <p className="blog-empty">
+            Couldn&apos;t load episodes right now — check back soon, or listen directly on{" "}
+            <a href={SHOW_URL} target="_blank" rel="noopener noreferrer">
+              Apple Podcasts
             </a>
-          ))}
-        </div>
+            .
+          </p>
+        ) : (
+          <div className="blog-grid">
+            {episodes.map((ep) => (
+              <a
+                key={ep.link || ep.title}
+                href={ep.link || SHOW_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="blog-card"
+              >
+                <div className="b-meta">{formatDate(ep.pubDate) || "Episode"}</div>
+                <h2 className="display">{ep.title}</h2>
+                {ep.description && <p>{ep.description}</p>}
+                <span className="b-read">🎙 Listen →</span>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
       <Footer />
       <FieldAudio />
