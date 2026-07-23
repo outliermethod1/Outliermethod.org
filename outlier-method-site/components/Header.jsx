@@ -40,7 +40,7 @@ export default function Header() {
     <header>
       <div className="header-inner">
         <a href="/" className="logo">
-          <div className="logo-badge">⛰</div>
+          <img src="/logo.png" alt="Outlier Method" className="logo-badge" />
           <div className="logo-text">
             <div className="name display">Outlier Method</div>
             <div className="tag">The Outdoors Belongs To Everyone.</div>

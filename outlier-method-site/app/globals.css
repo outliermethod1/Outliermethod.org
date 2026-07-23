@@ -66,9 +66,8 @@ header{
 }
 .logo{display:flex;align-items:center;gap:12px;}
 .logo-badge{
-  width:46px;height:46px;border:2px solid var(--brass);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.3rem;color:var(--brass);flex-shrink:0;
+  width:52px;height:52px;border-radius:50%;object-fit:cover;
+  flex-shrink:0;box-shadow:0 0 0 1px var(--card-border);
 }
 .logo-text .name{font-size:1.35rem;color:var(--cream);line-height:1;}
 .logo-text .tag{font-size:0.6rem;color:var(--brass);letter-spacing:0.14em;text-transform:uppercase;margin-top:3px;font-family:Verdana,sans-serif;}
@@ -789,6 +788,10 @@ footer{background:var(--ink);border-top:1px solid var(--card-border);padding:34p
 footer h4{
   font-family:'Arial Narrow',sans-serif;font-weight:700;text-transform:uppercase;
   letter-spacing:0.09em;font-size:0.85rem;color:var(--cream);margin-bottom:12px;
+}
+.footer-logo{
+  width:40px;height:40px;border-radius:50%;object-fit:cover;
+  box-shadow:0 0 0 1px var(--card-border);margin-bottom:10px;
 }
 footer p,footer li{font-size:0.74rem;color:var(--cream-dim);font-family:Verdana,sans-serif;line-height:1.7;}
 footer ul{list-style:none;}

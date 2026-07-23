@@ -257,6 +257,7 @@ export function Footer() {
           </div>
         </div>
         <div>
+          <img src="/logo.png" alt="Outlier Method" className="footer-logo" />
           <h4>Outlier Method</h4>
           <p>
             The Outdoors
