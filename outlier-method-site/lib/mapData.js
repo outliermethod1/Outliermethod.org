@@ -16,6 +16,7 @@ export const CAM_COORDS = {
   // whitewater stretch. Replaces the old Henry's Fork (Idaho) coordinates.
   "Yellowstone River Whitewater": { latitude: 45.0326, longitude: -110.7028 },
   "Wolf Country": { latitude: 47.9032, longitude: -91.8471 },
+  "Grand Teton National Park": { latitude: 43.7904, longitude: -110.6818 },
 };
 
 // Keyed by lib/states.js slugs — approximate geographic centroid of each state.

@@ -13,6 +13,7 @@ export const CAMS = [
   { name: "Orvis Guide: Small Ponds & Rivers", loc: "Instructional Series", icon: "🐟", bg: "#2c3e4f", embed: "https://www.youtube.com/embed/QbP053g5TMY?autoplay=1&mute=1" },
   { name: "Yellowstone River Whitewater", loc: "Montana", icon: "🎣", bg: "#35483d", embed: "https://www.youtube.com/embed/IvZ22jZgvOI?autoplay=1&mute=1" },
   { name: "Wolf Country", loc: "Ely, Minnesota", icon: "🐺", bg: "#3d3d46", embed: "https://www.youtube.com/embed/5e4lsEe4Vew?autoplay=1&mute=1" },
+  { name: "Grand Teton National Park", loc: "Wyoming", icon: "🏔️", bg: "#3d4d5a", embed: "https://www.youtube.com/embed/XhBUrjhJm1A?autoplay=1&mute=1" },
 ];
 
 // TICKER — real content only. Later this array gets fed by the daily n8n workflow.
