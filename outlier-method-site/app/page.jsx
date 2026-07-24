@@ -2,10 +2,16 @@ import Ticker from "../components/Ticker";
 import Header from "../components/Header";
 import AskBar from "../components/AskBar";
 import Hero from "../components/Hero";
-import Campfire from "../components/Campfire";
-import PathsRow from "../components/PathsRow";
 import FieldAudio from "../components/FieldAudio";
-import { Manifesto, ValueStrip, Categories, StateGuides, LatestFromField, Footer } from "../components/Sections";
+import { StartSmartPaths, CampfireWeekly } from "../components/PathsRow";
+import {
+  Manifesto,
+  ValueStrip,
+  FeaturedReviews,
+  FeaturedManufacturers,
+  CommandCenter,
+  Footer,
+} from "../components/Sections";
 
 export default function Home() {
   return (
@@ -17,13 +23,13 @@ export default function Home() {
       </div>
       <div className="wrap">
         <Hero />
-        <LatestFromField />
+        <FeaturedReviews />
+        <StartSmartPaths />
+        <FeaturedManufacturers />
+        <CampfireWeekly />
         <Manifesto />
         <ValueStrip />
-        <Campfire />
-        <Categories />
-        <StateGuides />
-        <PathsRow />
+        <CommandCenter />
       </div>
       <Footer />
       <FieldAudio />

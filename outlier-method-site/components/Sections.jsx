@@ -1,7 +1,9 @@
-import { STATES } from "../lib/config";
-import { getAllPosts } from "../lib/posts";
+import { MANUFACTURERS } from "../lib/config";
 import { getAllFieldTests } from "../lib/fieldTests";
 import AuthorAvatar from "./AuthorAvatar";
+import OutlierScore from "./OutlierScore";
+import LiveField from "./LiveField";
+import Campfire from "./Campfire";
 
 export function Manifesto() {
   return (
@@ -43,49 +45,51 @@ export function ValueStrip() {
   );
 }
 
-export function LatestFromField() {
-  const posts = getAllPosts()
-    .slice(0, 3)
-    .map((post) => ({
-      kind: "blog",
-      href: `/blog/${post.slug}`,
-      title: post.title,
-      category: post.category || "Field Notes",
-      author: post.author,
-      blurb: post.excerpt,
-    }));
-
-  const fieldTests = getAllFieldTests().map((test) => ({
-    kind: "field-test",
-    href: `/field-tests/${test.slug}`,
-    title: test.title,
-    category: `Field Test · ${test.category}`,
-    author: test.author,
-    blurb: test.description,
-  }));
-
-  const items = [...posts, ...fieldTests];
-  if (items.length === 0) return null;
+export function FeaturedReviews() {
+  const tests = getAllFieldTests().slice(0, 4);
+  if (tests.length === 0) return null;
 
   return (
-    <div className="latest-field">
+    <div className="featured-reviews">
       <div className="section-label">
-        <h2 className="display">Latest From the Field</h2>
+        <h2 className="display">Featured Reviews</h2>
         <div className="rule" />
       </div>
-      <div className="blog-grid">
-        {items.map((item) => (
-          <a key={item.href} href={item.href} className="blog-card">
-            <div className="ft-category">{item.category}</div>
-            <h3 className="display">{item.title}</h3>
-            {item.blurb && <p>{item.blurb}</p>}
+      <div className="blog-grid field-grid">
+        {tests.map((test) => (
+          <a key={test.slug} href={`/field-tests/${test.slug}`} className="blog-card field-card">
+            <div className="ft-category">{test.category}</div>
+            <h3 className="display">{test.title}</h3>
             <div className="b-author">
-              <AuthorAvatar author={item.author} className="avatar-28" />
-              <span>{item.author.name}</span>
+              <AuthorAvatar author={test.author} className="avatar-28" />
+              <span>{test.author.name}</span>
             </div>
-            <span className="b-read">
-              {item.kind === "field-test" ? "Read the Field Test →" : "Read More →"}
-            </span>
+            <OutlierScore scores={test.scores} />
+            <p className="ft-verdict">&ldquo;{test.verdict}&rdquo;</p>
+            <span className="b-read">Read the Field Test →</span>
+          </a>
+        ))}
+      </div>
+      <a href="/field-tests" className="campfire-banner">
+        See All Field Tests →
+      </a>
+    </div>
+  );
+}
+
+export function FeaturedManufacturers() {
+  return (
+    <div className="manufacturers">
+      <div className="section-label">
+        <h2 className="display">Featured American Manufacturers</h2>
+        <div className="rule" />
+      </div>
+      <div className="manufacturers-grid">
+        {MANUFACTURERS.map((m) => (
+          <a key={m.name} href={m.href} className="manufacturer-card">
+            <div className="mf-icon">{m.icon}</div>
+            <div className="mf-name display">{m.name}</div>
+            <span className="mf-link">See the Review →</span>
           </a>
         ))}
       </div>
@@ -164,32 +168,48 @@ export function Categories() {
   );
 }
 
-export function StateGuides() {
+export function CommandCenter() {
   return (
-    <div className="states" id="states">
+    <div className="command-center">
       <div className="section-label">
-        <h2 className="display">State Field Guides</h2>
+        <h2 className="display">The Outlier Command Center</h2>
         <div className="rule" />
       </div>
-      <div className="states-grid">
-        {STATES.map((s) => (
-          <a className="state-card" key={s.abbr} href={`/states/${s.name.toLowerCase()}`}>
-            <div className="st-abbr">{s.abbr}</div>
-            <h3 className="display">{s.name}</h3>
-            <p>Wildlife · Public Land · Camping · Fishing</p>
-            <div className="st-tags">{s.tags}</div>
-          </a>
-        ))}
-        <a className="state-card" href="/states">
-          <div className="st-abbr">＋</div>
-          <h3 className="display">All States</h3>
-          <p>Every state guide, one place.</p>
-          <div className="st-tags">Explore the map →</div>
+      <p className="command-center-intro">
+        Go deeper: live wildlife cams, trip planning tools, our podcast, and more.
+      </p>
+
+      <LiveField />
+
+      <div className="command-grid">
+        <a href="/map" className="command-card">
+          <div className="cc-icon">🗺️</div>
+          <h3 className="display">Interactive Map</h3>
+          <p>Live cams, state field guides, and public land — one map. Click anywhere to plan your trip.</p>
+          <span className="cc-link">Explore the Map →</span>
+        </a>
+        <a href="/trip-planner" className="command-card">
+          <div className="cc-icon">⛺</div>
+          <h3 className="display">Trip Planner</h3>
+          <p>Pick your trip, tell us where, get real conditions and a straight read before you go.</p>
+          <span className="cc-link">Plan a Trip →</span>
+        </a>
+        <a href="/podcast" className="command-card">
+          <div className="cc-icon">🎙️</div>
+          <h3 className="display">The Outlier Method Podcast</h3>
+          <p>Frontier history, survival stories, and grit — 6+ episodes and a 5.0 rating.</p>
+          <span className="cc-link">Listen Now →</span>
+        </a>
+        <a href="/states" className="command-card">
+          <div className="cc-icon">🧭</div>
+          <h3 className="display">State Guides</h3>
+          <p>Public land, seasons, and agencies — one page per state we cover.</p>
+          <span className="cc-link">Browse States →</span>
         </a>
       </div>
-      <a href="/map" className="campfire-banner">
-        Explore the Interactive Map →
-      </a>
+
+      <Campfire />
+      <Categories />
     </div>
   );
 }

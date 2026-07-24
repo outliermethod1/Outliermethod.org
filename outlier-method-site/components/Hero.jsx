@@ -1,6 +1,3 @@
-"use client";
-import LiveField from "./LiveField";
-
 export default function Hero() {
   return (
     <div className="hero">
@@ -17,29 +14,23 @@ export default function Hero() {
         </svg>
         <div className="hero-copy">
           <h1 className="display">
-            You don&apos;t need
+            The trusted place to decide
             <br />
-            to be rich to
+            where your money goes on
             <br />
-            <span className="accent">live well.</span>
+            <span className="accent">American-made gear.</span>
           </h1>
           <div className="hero-star">★</div>
           <p>
-            Field-tested gear, old-school wisdom, and honest advice to help you get
-            outside without getting screwed.
+            Field-tested gear, old-school wisdom, and honest Outlier Scores — so you
+            spend once and spend right.
           </p>
           <div>
             <a href="/field-tests" className="btn btn-solid">
-              Browse Gear
-            </a>
-            <a href="/blog" className="btn btn-ghost">
-              Read the Blog
+              See the Field Tests →
             </a>
           </div>
         </div>
-      </div>
-      <div className="hero-side">
-        <LiveField />
       </div>
     </div>
   );
