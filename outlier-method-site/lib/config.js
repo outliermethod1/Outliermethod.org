@@ -64,14 +64,6 @@ export const AUDIO = {
   soundcloudUrl: "",
 };
 
-// FEATURED AMERICAN MANUFACTURERS — brands we've field-tested so far.
-// Add an entry here each time a new brand gets a Field Test.
-export const MANUFACTURERS = [
-  { name: "Rocky", icon: "🥾", href: "/field-tests/rocky-high-top-hunting-boots" },
-  { name: "Bob Timberlake", icon: "🧳", href: "/field-tests/bob-timberlake-canvas-leather-bags" },
-  { name: "Darn Tough", icon: "🧦", href: "/field-tests/darn-tough-hiker-boot-socks" },
-];
-
 export const STATES = [
   { abbr: "CO", name: "Colorado", tags: "23M acres public land" },
   { abbr: "WY", name: "Wyoming", tags: "30M acres public land" },

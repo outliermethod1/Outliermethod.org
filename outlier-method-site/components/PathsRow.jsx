@@ -1,9 +1,40 @@
 "use client";
 import { useState } from "react";
 
-export function StartSmartPaths() {
+export default function PathsRow() {
+  const [email, setEmail] = useState("");
+  const [pending, setPending] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+  const [already, setAlready] = useState(false);
+  const [error, setError] = useState("");
+
+  async function subscribe(e) {
+    e.preventDefault();
+    if (!email.trim() || pending) return;
+    setPending(true);
+    setError("");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setAlready(Boolean(data.already));
+        setSubscribed(true);
+      } else {
+        setError(data.message || "Something went wrong — try again.");
+      }
+    } catch {
+      setError("Something went wrong — try again.");
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
-    <div className="paths-row buying-guides-row">
+    <div className="paths-row">
       <div className="start-smart">
         <div className="stamp">
           Start
@@ -60,50 +91,10 @@ export function StartSmartPaths() {
           </p>
         </div>
       </div>
-    </div>
-  );
-}
 
-export function CampfireWeekly() {
-  const [email, setEmail] = useState("");
-  const [pending, setPending] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
-  const [already, setAlready] = useState(false);
-  const [error, setError] = useState("");
-
-  async function subscribe(e) {
-    e.preventDefault();
-    if (!email.trim() || pending) return;
-    setPending(true);
-    setError("");
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setAlready(Boolean(data.already));
-        setSubscribed(true);
-      } else {
-        setError(data.message || "Something went wrong — try again.");
-      }
-    } catch {
-      setError("Something went wrong — try again.");
-    } finally {
-      setPending(false);
-    }
-  }
-
-  return (
-    <div className="email-capture">
-      <div className="email-capture-inner">
-        <h2 className="display">The Campfire Weekly</h2>
-        <p>
-          Gear picks, field wisdom, and what&apos;s moving in the wild — once a week.
-          No spam, no fluff.
-        </p>
+      <div className="updates">
+        <h3 className="display">The Campfire Weekly</h3>
+        <p>Gear picks, field wisdom, and what&apos;s moving in the wild — once a week. No spam, no fluff.</p>
         {subscribed ? (
           <p className="subscribe-done">
             {already

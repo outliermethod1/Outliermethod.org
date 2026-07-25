@@ -1,7 +1,7 @@
 ---
 title: "The Importance of a Good Dog"
 date: "2026-07-20"
-author: "eleanor"
+author: "ryan"
 category: "Companions & Family"
 description: "A good dog changes everything out there — not just the hunt, but the whole experience."
 excerpt: "A good dog changes everything out there — not just the hunt, but the whole experience."

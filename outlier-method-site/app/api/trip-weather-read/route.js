@@ -9,18 +9,11 @@ import {
 /* ============================================================
    TRIP WEATHER READ — API route.
    Takes a forecast summary for a trip-planner activity and
-   returns a short, in-character read from Amos or Eleanor.
+   returns a short, in-character read from Amos.
    Live answers via the xAI API. Set XAI_API_KEY in
    Vercel → Project → Settings → Environment Variables.
    Never hardcode the key.
 ============================================================ */
-
-const ACTIVITY_PERSONA = {
-  hunting: "amos",
-  fishing: "amos",
-  camping: "eleanor",
-  hiking: "eleanor",
-};
 
 const NO_KEY_ANSWER =
   "The full trip read is still getting its boots on — meanwhile, use the forecast " +
@@ -40,9 +33,7 @@ export async function POST(request) {
   const forecastSummary =
     typeof body.forecastSummary === "string" ? body.forecastSummary.slice(0, MAX_SUMMARY_LENGTH) : "";
 
-  const persona = ACTIVITY_PERSONA[activity];
-
-  if (!persona || !forecastSummary) {
+  if (!ACTIVITY_FIELD_KNOWLEDGE[activity] || !forecastSummary) {
     return NextResponse.json({ answer: "Need a location and forecast first." }, { status: 400 });
   }
 
@@ -50,7 +41,7 @@ export async function POST(request) {
     return NextResponse.json({ answer: NO_KEY_ANSWER });
   }
 
-  const systemPrompt = buildSystemPrompt(persona, [ACTIVITY_FIELD_KNOWLEDGE[activity], SAFETY_HARD_RULE]);
+  const systemPrompt = buildSystemPrompt([ACTIVITY_FIELD_KNOWLEDGE[activity], SAFETY_HARD_RULE]);
 
   const userMessage = `Activity: ${activity}\nLocation: ${location || "not specified"}\nForecast:\n${forecastSummary}\n\nGive your read on these conditions for this activity.`;
 

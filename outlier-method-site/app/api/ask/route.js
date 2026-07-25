@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { buildSystemPrompt, callGuideModel } from "../../../lib/guidePrompts";
 
 /* ============================================================
-   ASK AMOS / ELEANOR — API route.
+   ASK AMOS — API route.
    Live answers via the xAI API. Set XAI_API_KEY in
    Vercel → Project → Settings → Environment Variables.
    Never hardcode the key.
@@ -22,7 +22,6 @@ const MAX_HISTORY = 12;
 
 export async function POST(request) {
   const body = await request.json();
-  const persona = body.persona;
   const context = typeof body.context === "string" ? body.context.slice(0, MAX_CONTEXT_LENGTH) : "";
 
   const rawMessages = Array.isArray(body.messages)
@@ -51,7 +50,7 @@ export async function POST(request) {
     return NextResponse.json({ answer: PLACEHOLDER_ANSWER });
   }
 
-  const systemPrompt = buildSystemPrompt(persona, context ? [context] : []);
+  const systemPrompt = buildSystemPrompt(context ? [context] : []);
   const history = messages.slice(-MAX_HISTORY);
 
   try {

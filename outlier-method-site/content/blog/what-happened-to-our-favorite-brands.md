@@ -1,7 +1,7 @@
 ---
 title: "What Happened to Our Favorite Brands"
 date: "2026-07-23"
-author: "eleanor"
+author: "ryan"
 category: "Start Smart"
 description: "Filson moved their wool to Italy. Eddie Bauer just filed bankruptcy. Here's what changed, and why it matters."
 excerpt: "Filson moved their wool to Italy. Eddie Bauer just filed bankruptcy. Here's what changed, and why it matters."

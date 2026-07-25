@@ -40,8 +40,6 @@ async function reverseGeocodeCoords(lat, lng) {
   }
 }
 
-const PERSONA_LABEL = { amos: "Amos", eleanor: "Eleanor" };
-
 const WIND_COMPASS = [
   "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
   "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW",
@@ -149,7 +147,7 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
   const [readLoading, setReadLoading] = useState(false);
 
   const personaAuthor = resolveAuthor(activity.persona);
-  const personaLabel = PERSONA_LABEL[activity.persona] || personaAuthor.name;
+  const personaLabel = personaAuthor.name.split(" ")[0];
 
   async function fetchRead(label, summarizedDays) {
     setReadLoading(true);
@@ -369,10 +367,8 @@ export default function TripPlannerActivity({ activityKey, initialLat = null, in
               </div>
             </div>
             <AskBar
-              initialPersona={activity.persona}
               context={chatContext}
               hints={activity.chatHints}
-              showPersonaChips={false}
               openingMessage={chatOpeningMessage}
               note={`${personaLabel} is locked in as your guide for this trip — ask about gear, timing, or anything else.`}
             />

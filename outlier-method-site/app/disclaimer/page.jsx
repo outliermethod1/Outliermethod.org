@@ -34,9 +34,9 @@ export default function Disclaimer() {
               point to official sources for exactly that reason.
             </p>
             <p>
-              Amos Flint and Eleanor Crowe are AI-powered guides. They&apos;re designed
-              to give helpful, field-grounded answers, but they can make mistakes.
-              Verify anything safety-critical independently before you rely on it.
+              Amos Flint is an AI-powered guide. He&apos;s designed to give helpful,
+              field-grounded answers, but he can make mistakes. Verify anything
+              safety-critical independently before you rely on it.
             </p>
             <p>
               Our gear recommendations and Outlier Scores reflect genuine testing and

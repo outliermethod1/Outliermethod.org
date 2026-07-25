@@ -11,12 +11,6 @@ export const AUTHORS = {
     avatar: "/amos.png",
     bio: "Old trapper. Public land expert. Believes most problems can be solved with wool, patience, and a sixty-year-old knife.",
   },
-  eleanor: {
-    name: "Eleanor Crowe",
-    role: "Resident Guide",
-    avatar: "/eleanor.png",
-    bio: "Outdoorswoman and naturalist. Gets families and first-timers outside without the intimidation or the four-figure gear bill.",
-  },
   jesse: {
     name: "Jesse Meryhew",
     role: "Staff Writer",

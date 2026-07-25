@@ -64,14 +64,13 @@ export default function About() {
           </div>
 
           <div className="about-section">
-            <h2 className="display">Our Guides</h2>
+            <h2 className="display">Our Guide</h2>
             <p className="about-note">
-              Amos Flint and Eleanor Crowe are crafted guides, brought to life with AI.
-              The advice they give is real and field-grounded, reviewed against the same
-              standard as everything else on this site — but their beards, their
-              shotguns, and their campfire stories are illustrative. Think of them as
-              the friendliest way to get straight answers, not as two more people we
-              hired.
+              Amos Flint is a crafted guide, brought to life with AI. The advice he
+              gives is real and field-grounded, reviewed against the same standard as
+              everything else on this site — but his beard, his rifle, and his
+              campfire stories are illustrative. Think of him as the friendliest way
+              to get straight answers, not as one more person we hired.
             </p>
           </div>
         </div>

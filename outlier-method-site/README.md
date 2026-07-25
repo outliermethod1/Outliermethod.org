@@ -38,7 +38,7 @@ weather demo values, audio track. Edit → commit → push → Vercel auto-deplo
 
 ## Content slots waiting on you
 - `/public/hero.jpg` — hero photo (see the CSS note in `app/globals.css`)
-- `/public/amos.jpg`, `/public/eleanor.jpg` — persona portraits (CSS note in same file)
+- `/public/amos.jpg` — persona portrait (CSS note in same file)
 - Cam embed URLs → `lib/config.js` CAMS array
 - SoundCloud track URL → `lib/config.js` AUDIO + wiring notes in `components/FieldAudio.jsx`
 
@@ -46,6 +46,6 @@ weather demo values, audio track. Edit → commit → push → Vercel auto-deplo
 1. **Now:** content, products, wildlife streams, music player, images
 2. SEO, Instagram, newsletter (wire the subscribe form to your email provider —
    notes in `components/PathsRow.jsx`)
-3. Amos & Eleanor AI — the API route is already stubbed at `app/api/ask/route.js`
+3. Amos AI — the API route is already stubbed at `app/api/ask/route.js`
    with the Claude call commented in place. Set `ANTHROPIC_API_KEY` in Vercel env vars.
 4. Covey integration

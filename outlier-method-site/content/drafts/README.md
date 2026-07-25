@@ -9,7 +9,7 @@ without them showing up anywhere on outliermethod.org.
 
 Create a new markdown file here, e.g. `content/drafts/my-new-post.md`, using
 the same frontmatter as a published post plus one extra line: `status: draft`.
-`author` is one of the ids in `lib/authors.js` (`ryan`, `amos`, `eleanor`) —
+`author` is one of the ids in `lib/authors.js` (`ryan`, `amos`, `jesse`) —
 anything else falls back to `ryan`.
 
 ```md
