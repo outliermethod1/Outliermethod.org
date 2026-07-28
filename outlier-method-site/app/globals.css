@@ -909,3 +909,21 @@ footer a:hover{color:var(--cream);}
 .avatar-40 .avatar-fallback{font-size:0.8rem;}
 .avatar-64{width:64px;height:64px;}
 .avatar-64 .avatar-fallback{font-size:1.15rem;}
+
+/* ============ MAINTENANCE PAGE ============ */
+.maint{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:22px;background:var(--pine-dark);
+}
+.maint-card{
+  max-width:480px;width:100%;text-align:center;padding:48px 36px;
+  background:var(--pine);border:1px solid var(--card-border);border-radius:6px;
+}
+.maint-logo{display:inline-flex;flex-direction:column;align-items:center;gap:12px;}
+.maint-logo .logo-badge{
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;
+  background:var(--ink);
+}
+.maint-logo .logo-text{text-align:center;}
+.maint .m-rule{width:60px;height:2px;background:var(--brass);margin:26px auto;}
+.maint-msg{font-size:1.05rem;color:var(--cream-dim);font-style:italic;line-height:1.8;}

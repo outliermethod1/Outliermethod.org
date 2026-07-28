@@ -4,6 +4,11 @@
    Cams, ticker items, campfire content, weather demo values.
 ============================================================ */
 
+// MAINTENANCE MODE — set to true to show the holding page at every route
+// (site migration, host switch, etc). Set back to false to restore the
+// full site instantly. Doesn't touch any data — display only.
+export const MAINTENANCE_MODE = true;
+
 // LIVE CAMS — paste real embed URLs (Explore.org iframe src) into `embed`.
 // Leave embed as "" to show the placeholder. Add cam #9+ as one more object.
 export const CAMS = [
