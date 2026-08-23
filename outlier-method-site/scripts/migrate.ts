@@ -1,13 +1,9 @@
-import fs from "fs";
-import path from "path";
+import { runMigration } from "../lib/setup/bootstrap";
 import { getPool } from "../lib/db/client";
 
 async function main() {
-  const sql = fs.readFileSync(path.join(__dirname, "../migrations/001_init.sql"), "utf-8");
-  const pool = getPool();
-  await pool.query(sql);
-  console.log("Migration applied.");
-  await pool.end();
+  console.log(await runMigration());
+  await getPool().end();
 }
 
 main().catch((err) => {
