@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, verifySessionToken } from "./lib/auth";
-import { USER_COOKIE_NAME, verifyUserSessionToken } from "./lib/user-auth";
+import { USER_COOKIE_NAME, verifyUserSessionToken } from "./lib/user-session";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
