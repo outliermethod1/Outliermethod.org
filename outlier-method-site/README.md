@@ -1,51 +1,128 @@
-# Outlier Method — outliermethod.org
+# AD Chief of Staff — outliermethod.org
 
-The Outdoors Belongs To Everyone.
+Coach Eli Govern: an AI assistant grounded in state association bylaws, plus the full operational
+workload of running a high school or college athletic department.
 
-Next.js site, deployed on Vercel. Design frozen at v2.
+Next.js (App Router, TypeScript) · Tailwind · Anthropic Claude (streaming) · Postgres/pgvector (Neon) ·
+Vercel Blob · Vercel Cron · deployed on Vercel.
 
-## Launch steps
+## How it works
 
-### 1. Push to GitHub
-1. Create a new repo on GitHub (e.g. `outlier-method`)
-2. From this folder:
+- **`/`** — landing page.
+- **`/coach`** — the chat. One window; Coach Eli reasons internally in two modes (bylaws/eligibility —
+  strictly grounded and cited, vs. operations — freely helpful) but the split is invisible in the UI.
+- **`/admin`** — password-gated. Review queue for crawler-detected bylaw changes, manual document
+  upload, per-state configuration, index health.
+
+The bylaw corpus is the foundation: source PDFs archive to Vercel Blob at
+`bylaws/{state_code}/{YYYY-MM-DD}-{slug}.pdf` and are never queried directly. Ingestion parses each PDF
+on its own section boundaries into `bylaw_chunks`, embeds each chunk, and — when a bulletin amends a
+bylaw — supersedes the prior version rather than overwriting or deleting it. Retrieval always filters
+`state_code` before any similarity search and always excludes `superseded_by IS NOT NULL` rows, so a
+Colorado question can never surface a Texas bylaw and a superseded rule can never be cited as current.
+
+## Setup
+
+1. **Install dependencies**
+
+   ```bash
+   npm install
    ```
-   git init
-   git add .
-   git commit -m "Outlier Method v1 — frozen design"
-   git branch -M main
-   git remote add origin https://github.com/YOUR_USERNAME/outlier-method.git
-   git push -u origin main
+
+2. **Provision infrastructure**
+   - **Postgres**: add the Neon integration from your Vercel project (or point `DATABASE_URL` at any
+     Postgres 15+ instance with the `vector` extension available).
+   - **Vercel Blob**: create a Blob store in your Vercel project and copy its `BLOB_READ_WRITE_TOKEN`.
+   - **Anthropic**: get an API key from console.anthropic.com.
+   - **Voyage AI** (optional but recommended): get an API key from voyageai.com. Claude has no
+     embeddings endpoint, so bylaw retrieval uses Voyage for the vector side of hybrid search. Without
+     it, retrieval falls back to keyword-only search on `bylaw_id` and title/body — functional, but
+     noticeably worse at answering natural-language questions that don't cite a section number.
+
+3. **Copy `.env.example` to `.env`** and fill in the values above, plus:
+   - `ADMIN_PASSWORD` — the shared password for `/admin`.
+   - `ADMIN_SESSION_SECRET` — any long random string, used to sign the admin session cookie.
+   - `CRON_SECRET` — optional; if set, the crawler endpoint only accepts requests carrying it as a
+     bearer token. Vercel Cron sets this automatically once configured in your project settings.
+
+4. **Run the migration**
+
+   ```bash
+   npm run db:migrate
    ```
 
-### 2. Deploy on Vercel
-1. vercel.com → Add New → Project
-2. Import the `outlier-method` repo
-3. Framework preset auto-detects Next.js — no config needed
-4. Deploy. You'll get a live `*.vercel.app` URL immediately.
+5. **Seed one state end-to-end**
 
-### 3. Point outliermethod.org at Vercel
-1. In Vercel: Project → Settings → Domains → add `outliermethod.org` and `www.outliermethod.org`
-2. At your domain registrar, set DNS records exactly as Vercel's Domains screen instructs
-   (typically an A record for the root domain and a CNAME for `www` — use the values
-   Vercel shows you, since they can differ by account)
-3. Propagation usually takes minutes, sometimes a few hours. Vercel shows a green check when live.
+   ```bash
+   npm run db:seed
+   ```
 
-## Day-to-day editing
+   This seeds Colorado (CHSAA) with per-state config, two watched URLs, and a small set of bylaw
+   sections — including a worked example of an amendment superseding a prior section, so you can see
+   `superseded_by` in action immediately.
 
-**`lib/config.js` is your control panel** — cams, ticker items, campfire content,
-weather demo values, audio track. Edit → commit → push → Vercel auto-deploys.
+   **The seeded bylaw text is illustrative placeholder content**, written for this demo — it is not the
+   real CHSAA handbook. Replace it before using the app for an actual eligibility determination: go to
+   `/admin/documents` and upload the real, current handbook PDF for the state, or delete the seed rows
+   and re-seed with your own state's config.
 
-## Content slots waiting on you
-- `/public/hero.jpg` — hero photo (see the CSS note in `app/globals.css`)
-- `/public/amos.jpg` — persona portrait (CSS note in same file)
-- Cam embed URLs → `lib/config.js` CAMS array
-- SoundCloud track URL → `lib/config.js` AUDIO + wiring notes in `components/FieldAudio.jsx`
+6. **Run the dev server**
 
-## Phases (frozen roadmap)
-1. **Now:** content, products, wildlife streams, music player, images
-2. SEO, Instagram, newsletter (wire the subscribe form to your email provider —
-   notes in `components/PathsRow.jsx`)
-3. Amos AI — the API route is already stubbed at `app/api/ask/route.js`
-   with the Claude call commented in place. Set `ANTHROPIC_API_KEY` in Vercel env vars.
-4. Covey integration
+   ```bash
+   npm run dev
+   ```
+
+   Visit `/`, `/coach` (select Colorado), and `/admin` (sign in with `ADMIN_PASSWORD`).
+
+## Adding a new state
+
+1. In `/admin/config`, add the state: code, name, association name, and eligibility contact (name,
+   phone, email) — this renders below every Mode A answer for that state.
+2. Add its watched URLs (handbook page, bulletins, board minutes, interpretation memos) — the crawler
+   checks these daily via Vercel Cron and files anything changed into the review queue.
+3. Upload its current handbook PDF via `/admin/documents` with the correct effective date. The
+   ingestion pipeline parses it into section-aware chunks, categorizes each one, and embeds it (if
+   `VOYAGE_API_KEY` is set).
+4. Mid-year amendments: upload the bulletin PDF the same way, with its own effective date. Any section
+   number that already exists for that state gets superseded automatically — the old version stays in
+   the table (never deleted) so `resolve_as_of(date)` can reconstruct what the bylaws said on any past
+   date, which matters when a determination made months ago gets challenged.
+
+## The crawler
+
+`app/api/cron/crawl/route.ts`, scheduled daily via `vercel.json`. For each watched URL: fetches it,
+hashes the content, and if the hash changed, stages the new PDF in Blob and files a `review_queue`
+entry with a diff summary — **it never writes to `bylaw_chunks` directly.** A human approves or rejects
+from `/admin`; approval runs the same ingestion pipeline as a manual upload. A URL that 404s raises an
+alert immediately; a URL that hasn't changed in ~90 consecutive daily checks also raises one, since
+silent breakage on either end should surface as a notification, not as a wrong answer six months later.
+
+## PDF export
+
+Any conversation can be exported (`⇩` next to it in the left rail, or `GET /api/export?conversationId=`)
+to a PDF capturing the question, the bylaws cited with their verbatim text and effective date, the
+guidance disclaimer, and a timestamp — the paper trail if a determination is later challenged.
+
+## Deploying to Vercel
+
+1. Push this repo to GitHub.
+2. Import it in Vercel. Add the Postgres (Neon) and Blob integrations from the Vercel dashboard —
+   they'll set `DATABASE_URL` and `BLOB_READ_WRITE_TOKEN` automatically.
+3. Set the remaining env vars (`ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, `ADMIN_PASSWORD`,
+   `ADMIN_SESSION_SECRET`) in Project Settings → Environment Variables.
+4. Deploy. Then run the migration and seed once against the production database (e.g. `vercel env pull`
+   locally, then `npm run db:migrate && npm run db:seed`).
+5. Confirm the cron job appears under Project Settings → Cron Jobs (it's declared in `vercel.json`).
+6. Point `outliermethod.org` at the deployment under Project Settings → Domains.
+
+## Guardrails encoded in the code, not just the prompt
+
+- `lib/ai/retrieval.ts` filters `state_code` in SQL before any similarity search — the model never
+  chooses or sees another state's bylaws.
+- `superseded_by IS NULL` is a hard filter on every current-state retrieval query.
+- Every Mode A answer's citations get logged to `chat_logs.retrieved_chunk_ids` (see
+  `app/api/chat/route.ts`), so any determination can be reconstructed and audited later.
+- The disclaimer + association contact block (`components/coach/DisclaimerBlock.tsx`) renders
+  unconditionally whenever an answer carries citations — it's not something the model can be prompted
+  into skipping, and there's no collapse/dismiss control in the component.
+- `lib/rate-limit.ts` caps the chat endpoint per IP.
