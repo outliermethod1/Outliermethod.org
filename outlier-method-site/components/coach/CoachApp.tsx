@@ -27,6 +27,7 @@ export function CoachApp() {
   const [input, setInput] = useState("");
   const [phase, setPhase] = useState<PortraitPhase>("idle");
   const [openChunkId, setOpenChunkId] = useState<string | null>(null);
+  const [railOpen, setRailOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -148,22 +149,28 @@ export function CoachApp() {
 
   return (
     <div className="flex h-screen flex-col bg-bone">
-      <div className="flex items-center justify-between border-b border-rule bg-white px-4 py-3">
+      <div className="flex items-center justify-between border-b border-navy-700 bg-navy-900 px-4 py-3">
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setRailOpen(true)}
+            className="mr-1 text-bone md:hidden"
+            aria-label="Open conversations"
+          >
+            &#9776;
+          </button>
           <PortraitAvatar phase={phase} size={40} />
-          <div>
-            <p className="font-serif text-sm font-semibold text-navy-900">Coach Eli Govern</p>
-            <p className="text-[12px] text-slate">{activeState?.association_name ?? stateCode}</p>
+          <div className="flex items-center gap-3">
+            <p className="font-serif text-sm font-semibold text-bone">Coach Eli Govern</p>
+            <StateSelector states={states} value={stateCode} onChange={setStateCode} theme="dark" />
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/bylaws" className="hidden text-[13px] text-slate hover:text-navy-900 sm:inline">
+          <Link href="/bylaws" className="hidden text-[13px] text-bone/70 hover:text-bone sm:inline">
             Bylaw Library
           </Link>
-          <Link href="/" className="hidden text-[13px] text-slate hover:text-navy-900 sm:inline">
+          <Link href="/" className="hidden text-[13px] text-bone/70 hover:text-bone sm:inline">
             Home
           </Link>
-          <StateSelector states={states} value={stateCode} onChange={setStateCode} />
         </div>
       </div>
 
@@ -171,9 +178,17 @@ export function CoachApp() {
         <ConversationRail
           conversations={conversations}
           activeId={conversationId}
-          onSelect={loadConversation}
-          onNew={startNewConversation}
+          onSelect={(id) => {
+            loadConversation(id);
+            setRailOpen(false);
+          }}
+          onNew={() => {
+            startNewConversation();
+            setRailOpen(false);
+          }}
           onExport={exportConversation}
+          mobileOpen={railOpen}
+          onCloseMobile={() => setRailOpen(false)}
         />
 
         <div className="flex flex-1 flex-col overflow-hidden">

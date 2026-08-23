@@ -12,19 +12,23 @@ export function ConversationRail({
   onSelect,
   onNew,
   onExport,
+  mobileOpen,
+  onCloseMobile,
 }: {
   conversations: ConversationSummary[];
   activeId: string | null;
   onSelect: (id: string) => void;
   onNew: () => void;
   onExport: (id: string) => void;
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
 }) {
-  return (
-    <aside className="hidden w-64 shrink-0 border-r border-rule bg-bone md:flex md:flex-col">
-      <div className="border-b border-rule p-4">
+  const body = (
+    <>
+      <div className="border-b border-navy-700 p-4">
         <button
           onClick={onNew}
-          className="w-full border border-navy-900 bg-navy-900 px-3 py-2 text-[13px] font-medium text-bone hover:bg-navy-700"
+          className="w-full border border-red bg-red px-3 py-2 text-[13px] font-medium text-white hover:bg-[#8c1d27]"
         >
           New conversation
         </button>
@@ -33,16 +37,16 @@ export function ConversationRail({
         {conversations.map((c) => (
           <div
             key={c.id}
-            className={`group flex items-center justify-between border-b border-rule px-4 py-3 text-[13px] ${
-              c.id === activeId ? "bg-white" : ""
+            className={`group flex items-center justify-between border-b border-navy-700 px-4 py-3 text-[13px] ${
+              c.id === activeId ? "bg-navy-700" : ""
             }`}
           >
-            <button onClick={() => onSelect(c.id)} className="flex-1 truncate text-left text-ink hover:text-navy-900">
+            <button onClick={() => onSelect(c.id)} className="flex-1 truncate text-left text-bone/85 hover:text-bone">
               {c.title}
             </button>
             <button
               onClick={() => onExport(c.id)}
-              className="ml-2 shrink-0 text-slate opacity-0 hover:text-red group-hover:opacity-100"
+              className="ml-2 shrink-0 text-bone/50 opacity-0 hover:text-red group-hover:opacity-100"
               title="Export to PDF"
             >
               ⇩
@@ -50,6 +54,36 @@ export function ConversationRail({
           </div>
         ))}
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop: static sidebar */}
+      <aside className="hidden w-64 shrink-0 border-r border-navy-700 bg-navy-900 md:flex md:flex-col">
+        {body}
+      </aside>
+
+      {/* Mobile: slide-in overlay */}
+      <div
+        className={`fixed inset-0 z-50 bg-navy-900/50 transition-opacity md:hidden ${
+          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={onCloseMobile}
+      />
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-navy-900 transition-transform duration-200 md:hidden ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between border-b border-navy-700 p-4">
+          <span className="eyebrow text-bone/70">Conversations</span>
+          <button onClick={onCloseMobile} className="text-bone/70 hover:text-bone" aria-label="Close">
+            &#10005;
+          </button>
+        </div>
+        {body}
+      </aside>
+    </>
   );
 }

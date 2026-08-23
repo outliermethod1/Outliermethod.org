@@ -8,11 +8,13 @@ export function StateSelector({
   value,
   onChange,
   variant = "compact",
+  theme = "light",
 }: {
   states: StateOption[];
   value: string | null;
   onChange: (code: string) => void;
   variant?: "compact" | "full";
+  theme?: "light" | "dark";
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -53,10 +55,13 @@ export function StateSelector({
     setQuery("");
   }
 
+  const dark = theme === "dark";
   const buttonClasses =
     variant === "full"
       ? "w-full max-w-sm border border-navy-900 bg-white px-5 py-3 text-left text-[15px] font-medium text-navy-900 hover:border-red"
-      : "border border-navy-900 bg-white px-3 py-2 text-left text-[13px] font-medium text-navy-900 hover:border-red";
+      : dark
+        ? "border border-bone/25 bg-navy-900 px-3 py-2 text-left text-[13px] font-medium text-bone hover:border-red"
+        : "border border-navy-900 bg-white px-3 py-2 text-left text-[13px] font-medium text-navy-900 hover:border-red";
 
   return (
     <div ref={rootRef} className="relative">
