@@ -7,6 +7,7 @@ import { insertDocument } from "../db/documents";
 import { insertChunkAndSupersede } from "../db/chunks";
 import { embedTexts, embeddingsAvailable } from "../ai/embeddings";
 import { categorize } from "../ingest/categorize";
+import { ingestPdf } from "../ingest/ingest";
 import { STATE_CONFIG_DATA } from "../../scripts/state-config-data";
 
 export async function runMigration(): Promise<string> {
@@ -166,4 +167,72 @@ export async function seedAllStates(): Promise<string> {
   }
 
   return `Config seeded for ${STATE_CONFIG_DATA.length} states.`;
+}
+
+export interface HandbookIngestResult {
+  state_code: string;
+  status: "ingested" | "already_present" | "not_a_pdf" | "fetch_failed";
+  detail: string;
+}
+
+/**
+ * Fetches a single state's researched handbook_url and, if it's an actual
+ * PDF, runs it through the real ingestion pipeline (parse, chunk, embed).
+ * Skips states that already have chunks — this is meant for states that
+ * only have the illustrative demo (i.e. none, except Colorado) or nothing
+ * yet. Many researched URLs are HTML landing pages rather than direct PDF
+ * links; those are reported as "not_a_pdf" rather than guessed at.
+ */
+export async function ingestRealHandbook(stateCode: string): Promise<HandbookIngestResult> {
+  const entry = STATE_CONFIG_DATA.find((s) => s.state_code === stateCode.toLowerCase());
+  if (!entry) {
+    return { state_code: stateCode, status: "fetch_failed", detail: "No researched config for this state code." };
+  }
+
+  const existing = await query<{ count: string }>(
+    `select count(*)::text as count from bylaw_chunks where state_code = $1`,
+    [stateCode.toLowerCase()]
+  );
+  if (Number(existing[0]?.count ?? 0) > 0) {
+    return { state_code: stateCode, status: "already_present", detail: "Chunks already exist — skipped." };
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(entry.handbook_url, { redirect: "follow" });
+  } catch (err) {
+    return {
+      state_code: stateCode,
+      status: "fetch_failed",
+      detail: `Fetch error: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+  if (!res.ok) {
+    return { state_code: stateCode, status: "fetch_failed", detail: `HTTP ${res.status} from ${entry.handbook_url}` };
+  }
+
+  const buffer = Buffer.from(await res.arrayBuffer());
+  const contentType = res.headers.get("content-type") ?? "";
+  const looksLikePdf = contentType.includes("pdf") || buffer.subarray(0, 5).toString("latin1") === "%PDF-";
+  if (!looksLikePdf) {
+    return {
+      state_code: stateCode,
+      status: "not_a_pdf",
+      detail: `${entry.handbook_url} returned content-type "${contentType}" — likely an HTML landing page, not a direct PDF. Needs a corrected URL via /admin/documents or /admin/config.`,
+    };
+  }
+
+  const result = await ingestPdf({
+    stateCode,
+    effectiveDate: new Date().toISOString().slice(0, 10),
+    slug: "handbook",
+    buffer,
+    source: "crawler",
+  });
+
+  return {
+    state_code: stateCode,
+    status: "ingested",
+    detail: `Ingested ${result.chunkCount} sections from ${entry.handbook_url}. Effective date set to today — correct it via a fresh upload with the handbook's real effective date once known.`,
+  };
 }
