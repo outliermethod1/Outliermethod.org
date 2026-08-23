@@ -74,6 +74,38 @@ Colorado question can never surface a Texas bylaw and a superseded rule can neve
 
    Visit `/`, `/coach` (select Colorado), and `/admin` (sign in with `ADMIN_PASSWORD`).
 
+## Populating all 50 states' config at once
+
+```bash
+npm run db:seed-all-states
+```
+
+This runs [scripts/seed-all-states.ts](scripts/seed-all-states.ts), which loads
+[scripts/state-config-data.ts](scripts/state-config-data.ts) — a research pass across every state's
+athletic/activities association (official name, eligibility contact, and handbook/bulletins URLs) — and
+upserts it into `/admin/config`, including adding each state's handbook and bulletins pages as watched
+URLs for the crawler.
+
+**Read the caveats at the top of `state-config-data.ts` before trusting this in production:**
+
+- Several official association sites blocked automated fetching during research; those entries are
+  sourced from search-indexed snippets of the same page rather than a direct read. Each state's `notes`
+  field flags this where it applies.
+- Any contact field that couldn't be verified against an official page is `null` — nothing was guessed
+  or fabricated. Expect gaps, especially on eligibility-specific emails (many associations route
+  eligibility questions through the local school AD/principal by policy and don't publish one).
+- Iowa splits governance by sex: this only seeds IHSAA (boys). Girls' athletics are governed separately
+  by IGHSAU (ighsau.org) — add a second Iowa record if you need to distinguish them.
+- California (CIF) is decentralized into 10 geographic Sections, each with its own bylaws on top of the
+  state constitution and its own eligibility office. Only the state office is seeded.
+- **This does not ingest any bylaw text.** It only sets up contact info and crawler watch targets. Every
+  state except Colorado's illustrative demo will show up in `/coach` with no bylaws until you upload its
+  real handbook via `/admin/documents`, or the crawler finds one and it clears the review queue.
+
+Treat this as a strong first draft, not a finished directory — a state association reorganizing staff or
+moving its handbook URL between seasons is normal, and this was gathered from one research pass. Spot-
+check the states you're launching with first.
+
 ## Adding a new state
 
 1. In `/admin/config`, add the state: code, name, association name, and eligibility contact (name,
