@@ -117,3 +117,42 @@ create table if not exists chat_logs (
   retrieved_chunk_ids uuid[] not null default '{}',
   created_at timestamptz not null default now()
 );
+
+-- Member schools, sourced from each state association's official classification/
+-- realignment list (not MaxPreps — the association is the authority on its own
+-- classification, and there's no public MaxPreps API to pull from anyway).
+-- Looked up on demand via a chat tool rather than stuffed into every prompt —
+-- a state can have thousands of schools.
+create table if not exists schools (
+  id uuid primary key default gen_random_uuid(),
+  state_code text not null references states(state_code) on delete cascade,
+  name text not null,
+  city text,
+  classification text, -- e.g. "5A", "Class 3A", "Division II" — association-specific
+  district_region text, -- league/region/section name, association-specific
+  sports_sponsored text[],
+  source text not null default 'manual', -- 'manual' | 'crawler' | 'research'
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (state_code, name)
+);
+create index if not exists schools_state_name_idx on schools (state_code, name);
+
+-- Beta tester accounts. A signup fires an email to the admin's list address
+-- (see lib/email.ts) and requires the user to verify their own email before
+-- logging in.
+create table if not exists users (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  password_hash text not null,
+  email_verified boolean not null default false,
+  verification_token text,
+  verification_expires timestamptz,
+  name text,
+  school text,
+  state_code text references states(state_code),
+  avatar_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists users_verification_token_idx on users (verification_token);

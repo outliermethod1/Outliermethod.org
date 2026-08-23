@@ -7,7 +7,9 @@ const LINKS = [
   { href: "/admin", label: "Review Queue" },
   { href: "/admin/documents", label: "Documents" },
   { href: "/admin/config", label: "Configuration" },
+  { href: "/admin/schools", label: "Schools" },
   { href: "/admin/health", label: "Index Health" },
+  { href: "/admin/users", label: "Users" },
 ];
 
 export function AdminNav() {
