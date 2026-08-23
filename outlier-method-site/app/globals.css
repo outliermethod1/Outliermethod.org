@@ -34,3 +34,12 @@
 ::selection {
   background: var(--red-tint);
 }
+
+/* Faint institutional ledger texture for navy sections — hairlines, not a
+   decorative gradient wash. Kept low-opacity so it reads as paper grain. */
+.hairline-grid {
+  background-image:
+    linear-gradient(rgba(247, 245, 241, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(247, 245, 241, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+}

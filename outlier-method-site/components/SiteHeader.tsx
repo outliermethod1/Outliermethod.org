@@ -3,6 +3,7 @@ import Link from "next/link";
 export function SiteHeader() {
   return (
     <header className="border-b border-rule bg-bone">
+      <div className="h-[3px] bg-red" />
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <Link href="/" className="eyebrow text-navy-900">
           Outlier Method
