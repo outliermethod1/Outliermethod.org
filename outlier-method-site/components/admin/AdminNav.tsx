@@ -35,9 +35,14 @@ export function AdminNav() {
           </Link>
         ))}
       </div>
-      <button onClick={logout} className="text-[13px] text-slate hover:text-red">
-        Sign out
-      </button>
+      <div className="flex items-center gap-5">
+        <Link href="/" className="text-[13px] text-slate hover:text-navy-900">
+          View site
+        </Link>
+        <button onClick={logout} className="text-[13px] text-slate hover:text-red">
+          Sign out
+        </button>
+      </div>
     </nav>
   );
 }
