@@ -35,20 +35,32 @@ export async function POST(req: NextRequest) {
   }
 
   let conversationId = incomingConversationId;
-  if (conversationId) {
-    const existing = await getConversation(conversationId);
-    if (!existing) conversationId = undefined;
-  }
-  if (!conversationId) {
-    const conv = await createConversation(stateCode, message.slice(0, 60));
-    conversationId = conv.id;
-  }
+  let stream: AsyncIterable<string>;
+  let retrievedChunks: { id: string }[];
+  try {
+    if (conversationId) {
+      const existing = await getConversation(conversationId);
+      if (!existing) conversationId = undefined;
+    }
+    if (!conversationId) {
+      const conv = await createConversation(stateCode, message.slice(0, 60));
+      conversationId = conv.id;
+    }
 
-  await addMessage(conversationId, "user", message);
-  const priorMessages = await listMessages(conversationId);
-  const history: ChatTurn[] = priorMessages.map((m) => ({ role: m.role, content: m.content }));
+    await addMessage(conversationId, "user", message);
+    const priorMessages = await listMessages(conversationId);
+    const history: ChatTurn[] = priorMessages.map((m) => ({ role: m.role, content: m.content }));
 
-  const { stream, retrievedChunks } = await runCoachEli(stateCode, history);
+    const result = await runCoachEli(stateCode, history);
+    stream = result.stream;
+    retrievedChunks = result.retrievedChunks;
+  } catch (err) {
+    console.error("chat route setup failed:", err);
+    return new Response(
+      JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error setting up chat" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   const encoder = new TextEncoder();
   let fullText = "";
