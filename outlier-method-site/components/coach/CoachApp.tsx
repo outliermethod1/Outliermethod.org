@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { StateSelector } from "./StateSelector";
 import { PortraitAvatar, type PortraitPhase } from "./PortraitAvatar";
 import { MessageBubble, type ChatMessage } from "./MessageBubble";
@@ -153,7 +154,15 @@ export function CoachApp() {
             <p className="text-[12px] text-slate">{activeState?.association_name ?? stateCode}</p>
           </div>
         </div>
-        <StateSelector states={states} value={stateCode} onChange={setStateCode} />
+        <div className="flex items-center gap-4">
+          <Link href="/bylaws" className="hidden text-[13px] text-slate hover:text-navy-900 sm:inline">
+            Bylaw Library
+          </Link>
+          <Link href="/" className="hidden text-[13px] text-slate hover:text-navy-900 sm:inline">
+            Home
+          </Link>
+          <StateSelector states={states} value={stateCode} onChange={setStateCode} />
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">

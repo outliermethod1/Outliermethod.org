@@ -57,6 +57,16 @@ export async function insertChunkAndSupersede(chunk: NewChunk): Promise<string> 
   return inserted.id;
 }
 
+/** All current (non-superseded) chunks for a state, for the public bylaw library. */
+export async function listCurrentChunksForState(stateCode: string): Promise<BylawChunk[]> {
+  return query<BylawChunk>(
+    `select * from bylaw_chunks
+     where state_code = $1 and superseded_by is null
+     order by category, bylaw_id`,
+    [stateCode.toLowerCase()]
+  );
+}
+
 export interface StateIndexHealth {
   state_code: string;
   chunk_count: number;

@@ -15,6 +15,9 @@ export function SiteHeader() {
           <Link href="/#who-its-for" className="hidden sm:inline hover:text-navy-700">
             Who it&rsquo;s for
           </Link>
+          <Link href="/bylaws" className="hidden sm:inline hover:text-navy-700">
+            Bylaw Library
+          </Link>
           <Link
             href="/coach"
             className="border border-navy-900 bg-navy-900 px-4 py-2 text-[14px] font-medium text-bone hover:bg-navy-700"

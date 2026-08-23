@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 interface ChunkDetail {
   id: string;
+  state_code: string;
   bylaw_id: string;
   title: string;
   body: string;
@@ -43,14 +44,24 @@ export function SourcePanel({ chunkId, onClose }: { chunkId: string; onClose: ()
             </h2>
             <p className="mt-1 text-[13px] text-slate">Effective {chunk.effective_date}</p>
             <blockquote className="bylaw-quote mt-5 whitespace-pre-wrap text-ink">{chunk.body}</blockquote>
-            <a
-              href={chunk.source_doc}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-6 inline-block border border-navy-900 px-4 py-2 text-[13px] font-medium text-navy-900 hover:bg-navy-900 hover:text-white"
-            >
-              Open source PDF{chunk.source_page ? ` — page ${chunk.source_page}` : ""}
-            </a>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a
+                href={chunk.source_doc}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block border border-navy-900 px-4 py-2 text-[13px] font-medium text-navy-900 hover:bg-navy-900 hover:text-white"
+              >
+                Open source PDF{chunk.source_page ? ` — page ${chunk.source_page}` : ""}
+              </a>
+              <a
+                href={`/bylaws/${chunk.state_code}#chunk-${chunk.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block border border-rule px-4 py-2 text-[13px] font-medium text-slate hover:border-navy-900 hover:text-navy-900"
+              >
+                View in Bylaw Library
+              </a>
+            </div>
           </>
         )}
       </div>
