@@ -139,7 +139,9 @@ export function CoachApp() {
         <p className="max-w-md text-center text-sm text-slate">
           Coach Eli grounds every eligibility answer in your state&rsquo;s bylaws. Pick your state before you start.
         </p>
-        <StateSelector states={states} value={stateCode} onChange={setStateCode} />
+        <div className="w-full max-w-sm">
+          <StateSelector states={states} value={stateCode} onChange={setStateCode} variant="full" />
+        </div>
       </div>
     );
   }

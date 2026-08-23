@@ -1,4 +1,9 @@
-import { Pool } from "pg";
+import { Pool, types } from "pg";
+
+// Return `date` columns as plain "YYYY-MM-DD" strings instead of node-postgres's
+// default JS Date (which serializes to a full ISO timestamp and reads wrong
+// everywhere a bare effective date is displayed).
+types.setTypeParser(1082, (val: string) => val);
 
 let pool: Pool | undefined;
 
