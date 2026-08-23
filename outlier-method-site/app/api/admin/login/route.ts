@@ -13,7 +13,9 @@ export async function POST(req: NextRequest) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 12,
+    // No maxAge — a session cookie, cleared when the browser fully closes.
+    // The 12-hour expiry baked into the signed token itself still caps how
+    // long a session is valid even if the browser somehow keeps it alive.
   });
   return res;
 }

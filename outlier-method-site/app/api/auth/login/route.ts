@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     secure: true,
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    // No maxAge — a session cookie, cleared when the browser fully closes.
   });
   return res;
 }
