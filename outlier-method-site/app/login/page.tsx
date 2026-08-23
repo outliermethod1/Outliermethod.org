@@ -31,7 +31,12 @@ function LoginForm() {
       setError(data.error ?? "Login failed.");
       return;
     }
-    router.push(data.profileComplete ? "/profile" : "/profile?setup=1");
+    const next = params.get("next");
+    if (!data.profileComplete) {
+      router.push(`/profile?setup=1${next ? `&next=${encodeURIComponent(next)}` : ""}`);
+    } else {
+      router.push(next || "/profile");
+    }
   }
 
   return (
@@ -78,6 +83,9 @@ function LoginForm() {
 
       <p className="mt-6 text-[13px] text-slate">
         Need an account? <Link href="/signup" className="text-navy-900 underline">Sign up</Link>
+      </p>
+      <p className="mt-2 text-[13px] text-slate">
+        Outlier Method staff — <Link href="/admin/login" className="text-navy-900 underline">admin login</Link>
       </p>
     </div>
   );

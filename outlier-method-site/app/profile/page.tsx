@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import type { StateOption } from "@/lib/states-client";
@@ -15,8 +15,10 @@ interface Profile {
   avatar_url: string | null;
 }
 
-export default function ProfilePage() {
+function ProfileForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const next = params.get("next");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [states, setStates] = useState<StateOption[]>([]);
   const [name, setName] = useState("");
@@ -54,6 +56,10 @@ export default function ProfilePage() {
     setBusy(false);
     if (res.ok) {
       setProfile(data.user);
+      if (next) {
+        router.push(next);
+        return;
+      }
       setStatus("Saved.");
     } else {
       setStatus(data.error ?? "Save failed.");
@@ -203,5 +209,13 @@ export default function ProfilePage() {
       </main>
       <SiteFooter />
     </>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={null}>
+      <ProfileForm />
+    </Suspense>
   );
 }

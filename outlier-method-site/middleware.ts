@@ -30,9 +30,37 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Coach Eli itself is gated: a signed-in beta tester, or an admin (via
+  // /admin/login's shared password) covers both.
+  const COACH_API_PREFIXES = ["/api/chat", "/api/conversations", "/api/export"];
+  const isCoachPage = pathname === "/coach";
+  const isCoachApi = COACH_API_PREFIXES.some((p) => pathname.startsWith(p));
+  if (isCoachPage || isCoachApi) {
+    const userToken = req.cookies.get(USER_COOKIE_NAME)?.value;
+    const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
+    const authed = (await verifyUserSessionToken(userToken)) || (await verifySessionToken(adminToken));
+    if (!authed) {
+      if (isCoachApi) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("next", "/coach");
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*", "/profile/:path*", "/api/profile/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/api/admin/:path*",
+    "/profile/:path*",
+    "/api/profile/:path*",
+    "/coach",
+    "/api/chat/:path*",
+    "/api/conversations/:path*",
+    "/api/export/:path*",
+  ],
 };
