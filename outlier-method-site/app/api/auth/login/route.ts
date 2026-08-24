@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserByEmail } from "@/lib/db/users";
-import { createUserSessionToken, verifyPassword, USER_COOKIE_NAME } from "@/lib/user-auth";
+import { createUserSessionToken, verifyPassword } from "@/lib/user-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -26,16 +26,12 @@ export async function POST(req: NextRequest) {
   }
 
   const token = await createUserSessionToken(user.id);
-  const res = NextResponse.json({
+  // Returned in the body, not a cookie — the client keeps it in
+  // sessionStorage (see lib/auth-client.ts) so a new tab genuinely starts
+  // logged out instead of inheriting a browser-wide cookie.
+  return NextResponse.json({
     ok: true,
+    token,
     profileComplete: !!(user.name && user.school),
   });
-  res.cookies.set(USER_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    // No maxAge — a session cookie, cleared when the browser fully closes.
-  });
-  return res;
 }

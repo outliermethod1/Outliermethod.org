@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getUserToken } from "@/lib/auth-client";
 
 export function SiteHeader() {
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
-    fetch("/api/profile")
-      .then((r) => setLoggedIn(r.ok))
-      .catch(() => setLoggedIn(false));
+    // Lightweight signal — presence of a token means "was logged in this
+    // tab." Not worth a network round trip just to light up a nav link;
+    // /profile itself re-validates against the server on load.
+    setLoggedIn(!!getUserToken());
   }, []);
 
   return (

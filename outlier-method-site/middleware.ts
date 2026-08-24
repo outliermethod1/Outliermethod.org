@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, verifySessionToken } from "./lib/auth";
-import { USER_COOKIE_NAME, verifyUserSessionToken } from "./lib/user-session";
+import { verifyUserSessionToken } from "./lib/user-session";
+
+// Beta-tester auth travels as an Authorization: Bearer header (checked here),
+// not a cookie — the token lives in the client's sessionStorage
+// (lib/auth-client.ts) so a new tab starts logged out. That means it can
+// only be checked on API calls, which carry the header; a page navigation
+// (GET /coach, GET /profile) can't, so those pages self-guard on mount
+// instead (redirect client-side if no token/failed fetch) rather than
+// relying on this middleware for the page shell itself.
+function bearerToken(req: NextRequest): string | undefined {
+  const auth = req.headers.get("authorization");
+  return auth?.replace(/^Bearer\s+/i, "");
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -19,33 +31,28 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (pathname.startsWith("/profile") || pathname.startsWith("/api/profile")) {
-    const token = req.cookies.get(USER_COOKIE_NAME)?.value;
-    const userId = await verifyUserSessionToken(token);
-    if (!userId) {
-      if (pathname.startsWith("/api/profile")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-      return NextResponse.redirect(new URL("/login", req.url));
+  // /api/profile* — beta-tester header auth, or an admin cookie.
+  if (pathname.startsWith("/api/profile")) {
+    const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
+    const authed = (await verifyUserSessionToken(bearerToken(req))) || (await verifySessionToken(adminToken));
+    if (!authed) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
 
-  // Coach Eli itself is gated: a signed-in beta tester, or an admin (via
-  // /admin/login's shared password) covers both.
+  // Coach Eli's API surface — same two paths in. /api/export is opened via
+  // window.open (a plain navigation, no custom headers possible), so it also
+  // accepts the token as a ?token= query param as a fallback to the header.
   const COACH_API_PREFIXES = ["/api/chat", "/api/conversations", "/api/export"];
-  const isCoachPage = pathname === "/coach";
-  const isCoachApi = COACH_API_PREFIXES.some((p) => pathname.startsWith(p));
-  if (isCoachPage || isCoachApi) {
-    const userToken = req.cookies.get(USER_COOKIE_NAME)?.value;
+  if (COACH_API_PREFIXES.some((p) => pathname.startsWith(p))) {
     const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
-    const authed = (await verifyUserSessionToken(userToken)) || (await verifySessionToken(adminToken));
+    const queryToken = pathname.startsWith("/api/export") ? req.nextUrl.searchParams.get("token") : null;
+    const authed =
+      (await verifyUserSessionToken(bearerToken(req))) ||
+      (await verifyUserSessionToken(queryToken)) ||
+      (await verifySessionToken(adminToken));
     if (!authed) {
-      if (isCoachApi) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-      const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("next", "/coach");
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
 
@@ -56,9 +63,7 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/api/admin/:path*",
-    "/profile/:path*",
     "/api/profile/:path*",
-    "/coach",
     "/api/chat/:path*",
     "/api/conversations/:path*",
     "/api/export/:path*",

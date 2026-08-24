@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { StateSelector } from "./StateSelector";
 import { PortraitAvatar, type PortraitPhase } from "./PortraitAvatar";
 import { MessageBubble, type ChatMessage } from "./MessageBubble";
@@ -9,6 +10,7 @@ import { SourcePanel } from "./SourcePanel";
 import { StarterPrompts } from "./StarterPrompts";
 import { ConversationRail } from "./ConversationRail";
 import type { StateOption } from "@/lib/states-client";
+import { authFetch, getUserToken } from "@/lib/auth-client";
 
 interface FullState extends StateOption {
   eligibility_contact_name: string | null;
@@ -19,6 +21,7 @@ interface FullState extends StateOption {
 const STATE_STORAGE_KEY = "ad-chief-of-staff:state-code";
 
 export function CoachApp() {
+  const router = useRouter();
   const [states, setStates] = useState<FullState[]>([]);
   const [stateCode, setStateCode] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -42,11 +45,16 @@ export function CoachApp() {
   useEffect(() => {
     if (!stateCode) return;
     window.localStorage.setItem(STATE_STORAGE_KEY, stateCode);
-    fetch(`/api/conversations?state=${stateCode}`)
-      .then((r) => (r.ok ? r.json() : { conversations: [] }))
+    authFetch(`/api/conversations?state=${stateCode}`).then((r) => {
+      if (r.status === 401) {
+        router.push("/login?next=/coach");
+        return { conversations: [] };
+      }
+      return r.ok ? r.json() : { conversations: [] };
+    })
       .then((d) => setConversations(d.conversations ?? []))
       .catch(() => setConversations([]));
-  }, [stateCode]);
+  }, [stateCode, router]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -56,7 +64,11 @@ export function CoachApp() {
 
   async function loadConversation(id: string) {
     setConversationId(id);
-    const res = await fetch(`/api/conversations/${id}`);
+    const res = await authFetch(`/api/conversations/${id}`);
+    if (res.status === 401) {
+      router.push("/login?next=/coach");
+      return;
+    }
     const data = await res.json();
     setMessages(
       (data.messages ?? []).map((m: any) => ({ id: m.id, role: m.role, content: m.content, mode: m.mode }))
@@ -76,12 +88,17 @@ export function CoachApp() {
     setInput("");
     setPhase("thinking");
 
-    const res = await fetch("/api/chat", {
+    const res = await authFetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stateCode, message: text, conversationId }),
     });
 
+    if (res.status === 401) {
+      router.push("/login?next=/coach");
+      setPhase("idle");
+      return;
+    }
     if (!res.body) {
       setPhase("idle");
       return;
@@ -118,8 +135,8 @@ export function CoachApp() {
           );
         } else if (eventName === "done") {
           setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, mode: data.mode } : m)));
-          fetch(`/api/conversations?state=${stateCode}`)
-            .then((r) => r.json())
+          authFetch(`/api/conversations?state=${stateCode}`)
+            .then((r) => (r.ok ? r.json() : { conversations: [] }))
             .then((d) => setConversations(d.conversations ?? []));
         }
       }
@@ -129,7 +146,12 @@ export function CoachApp() {
   }
 
   function exportConversation(id: string) {
-    window.open(`/api/export?conversationId=${id}`, "_blank");
+    // window.open can't attach an Authorization header, so a beta tester's
+    // bearer token rides along as a query param instead — admin's cookie is
+    // sent automatically either way.
+    const token = getUserToken();
+    const url = `/api/export?conversationId=${id}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
+    window.open(url, "_blank");
   }
 
   if (!stateCode) {

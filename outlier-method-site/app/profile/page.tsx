@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import type { StateOption } from "@/lib/states-client";
+import { authFetch, clearUserToken, getUserToken } from "@/lib/auth-client";
 
 interface Profile {
   id: string;
@@ -29,7 +30,11 @@ function ProfileForm() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
-    fetch("/api/profile")
+    if (!getUserToken()) {
+      router.push(`/login${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+      return;
+    }
+    authFetch("/api/profile")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => {
         setProfile(d.user);
@@ -37,17 +42,20 @@ function ProfileForm() {
         setSchool(d.user.school ?? "");
         setStateCode(d.user.state_code ?? "");
       })
-      .catch(() => router.push("/login"));
+      .catch(() => {
+        clearUserToken();
+        router.push("/login");
+      });
     fetch("/api/states")
       .then((r) => r.json())
       .then((d) => setStates(d.states ?? []));
-  }, [router]);
+  }, [router, next]);
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setStatus(null);
-    const res = await fetch("/api/profile", {
+    const res = await authFetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, school, stateCode }),
@@ -72,7 +80,7 @@ function ProfileForm() {
     setBusy(true);
     const fd = new FormData();
     fd.append("file", file);
-    const res = await fetch("/api/profile/avatar", { method: "POST", body: fd });
+    const res = await authFetch("/api/profile/avatar", { method: "POST", body: fd });
     const data = await res.json();
     setBusy(false);
     if (res.ok) {
@@ -84,12 +92,13 @@ function ProfileForm() {
 
   async function deleteAccount() {
     setBusy(true);
-    await fetch("/api/profile", { method: "DELETE" });
+    await authFetch("/api/profile", { method: "DELETE" });
+    clearUserToken();
     router.push("/");
   }
 
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+  function logout() {
+    clearUserToken();
     router.push("/");
   }
 

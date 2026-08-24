@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { setUserToken } from "@/lib/auth-client";
 
 function LoginForm() {
   const router = useRouter();
@@ -31,6 +32,7 @@ function LoginForm() {
       setError(data.error ?? "Login failed.");
       return;
     }
+    setUserToken(data.token);
     const next = params.get("next");
     if (!data.profileComplete) {
       router.push(`/profile?setup=1${next ? `&next=${encodeURIComponent(next)}` : ""}`);

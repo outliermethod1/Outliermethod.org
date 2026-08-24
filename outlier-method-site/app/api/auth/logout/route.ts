@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { USER_COOKIE_NAME } from "@/lib/user-auth";
 
+// No-op — the beta-tester session lives in the client's sessionStorage
+// (lib/auth-client.ts), not a cookie, so there's nothing server-side to
+// clear. Kept as an endpoint for symmetry / in case a future auth mode needs it.
 export async function POST() {
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set(USER_COOKIE_NAME, "", { path: "/", maxAge: 0 });
-  return res;
+  return NextResponse.json({ ok: true });
 }

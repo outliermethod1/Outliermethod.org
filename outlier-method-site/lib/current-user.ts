@@ -1,10 +1,11 @@
-import { cookies } from "next/headers";
-import { USER_COOKIE_NAME, verifyUserSessionToken } from "./user-auth";
+import { headers } from "next/headers";
+import { verifyUserSessionToken } from "./user-session";
 import { getUserById, type User } from "./db/users";
 
-/** Resolves the logged-in user from the session cookie, or null. For use in Node-runtime route handlers. */
+/** Resolves the logged-in user from the Authorization: Bearer header, or null. */
 export async function getCurrentUser(): Promise<User | null> {
-  const token = cookies().get(USER_COOKIE_NAME)?.value;
+  const auth = headers().get("authorization");
+  const token = auth?.replace(/^Bearer\s+/i, "");
   const userId = await verifyUserSessionToken(token);
   if (!userId) return null;
   return getUserById(userId);
