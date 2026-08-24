@@ -153,11 +153,16 @@ create table if not exists users (
   state_code text references states(state_code),
   avatar_url text,
   signature text, -- how they sign emails; Eli signs drafted emails with this when it's on file
+  reset_token text,
+  reset_expires timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 create index if not exists users_verification_token_idx on users (verification_token);
+create index if not exists users_reset_token_idx on users (reset_token);
 alter table users add column if not exists signature text;
+alter table users add column if not exists reset_token text;
+alter table users add column if not exists reset_expires timestamptz;
 
 -- Prebuilt operational document templates, browsable at /forms. Separate
 -- from Coach Eli's on-demand drafting (Mode B) — this is a quick-reference

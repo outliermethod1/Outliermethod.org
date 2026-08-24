@@ -12,6 +12,8 @@ export interface User {
   state_code: string | null;
   avatar_url: string | null;
   signature: string | null;
+  reset_token: string | null;
+  reset_expires: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -47,6 +49,26 @@ export async function markEmailVerified(userId: string): Promise<void> {
     `update users set email_verified = true, verification_token = null, verification_expires = null, updated_at = now()
      where id = $1`,
     [userId]
+  );
+}
+
+export async function setResetToken(userId: string, token: string): Promise<void> {
+  await query(
+    `update users set reset_token = $2, reset_expires = now() + interval '1 hour', updated_at = now()
+     where id = $1`,
+    [userId, token]
+  );
+}
+
+export async function getUserByResetToken(token: string): Promise<User | null> {
+  return queryOne<User>(`select * from users where reset_token = $1 and reset_expires > now()`, [token]);
+}
+
+export async function resetPassword(userId: string, passwordHash: string): Promise<void> {
+  await query(
+    `update users set password_hash = $2, reset_token = null, reset_expires = null, updated_at = now()
+     where id = $1`,
+    [userId, passwordHash]
   );
 }
 
