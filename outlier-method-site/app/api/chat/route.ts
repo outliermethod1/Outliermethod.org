@@ -47,41 +47,40 @@ export async function POST(req: NextRequest) {
     return jsonResponse({ error: "stateCode and message are required" }, 400);
   }
 
-  const identity = await resolveIdentity(req);
-  const isAuthed = identity.isAdmin || !!identity.userId;
-
-  // Anonymous visitor: gate on the free-question quota before doing any
-  // real work. The cookie's session id is authoritative; the per-IP count
-  // is only a backstop against cookie-clearing (see lib/anon-quota.ts).
-  let anonId: string | null = null;
-  let newAnonCookie: string | null = null;
-  let remaining: number | null = null;
-
-  if (!isAuthed) {
-    anonId = identity.anonSessionId ?? generateAnonId();
-    if (!identity.anonSessionId) newAnonCookie = await signAnonId(anonId);
-
-    const ipHash = await hashIp(ip);
-    const session = await getOrCreateAnonSession(anonId, ipHash);
-    const ipUsageCount = await getIpUsageCount(ipHash);
-    const used = effectiveExchangeCount(session.exchange_count, ipUsageCount);
-
-    if (used >= FREE_QUESTION_LIMIT) {
-      return jsonResponse(
-        { error: "free_limit_reached", remaining: 0 },
-        403,
-        newAnonCookie ? { "Set-Cookie": anonCookieHeader(newAnonCookie) } : undefined
-      );
-    }
-
-    const newCount = await incrementAnonExchange(anonId, ipHash);
-    remaining = remainingFreeQuestions(newCount, ipUsageCount);
-  }
-
   let conversationId = incomingConversationId;
   let stream: AsyncIterable<string>;
   let retrievedChunks: { id: string }[];
+  let anonId: string | null = null;
+  let newAnonCookie: string | null = null;
+  let remaining: number | null = null;
   try {
+    const identity = await resolveIdentity(req);
+    const isAuthed = identity.isAdmin || !!identity.userId;
+
+    // Anonymous visitor: gate on the free-question quota before doing any
+    // real work. The cookie's session id is authoritative; the per-IP count
+    // is only a backstop against cookie-clearing (see lib/anon-quota.ts).
+    if (!isAuthed) {
+      anonId = identity.anonSessionId ?? generateAnonId();
+      if (!identity.anonSessionId) newAnonCookie = await signAnonId(anonId);
+
+      const ipHash = await hashIp(ip);
+      const session = await getOrCreateAnonSession(anonId, ipHash);
+      const ipUsageCount = await getIpUsageCount(ipHash);
+      const used = effectiveExchangeCount(session.exchange_count, ipUsageCount);
+
+      if (used >= FREE_QUESTION_LIMIT) {
+        return jsonResponse(
+          { error: "free_limit_reached", remaining: 0 },
+          403,
+          newAnonCookie ? { "Set-Cookie": anonCookieHeader(newAnonCookie) } : undefined
+        );
+      }
+
+      const newCount = await incrementAnonExchange(anonId, ipHash);
+      remaining = remainingFreeQuestions(newCount, ipUsageCount);
+    }
+
     if (conversationId) {
       const existing = await getConversation(conversationId);
       if (!existing || !ownsConversation(identity, existing)) {
