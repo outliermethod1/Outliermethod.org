@@ -15,6 +15,7 @@ interface Profile {
   state_code: string | null;
   avatar_url: string | null;
   signature: string | null;
+  voice_enabled: boolean;
 }
 
 function ProfileForm() {
@@ -27,6 +28,7 @@ function ProfileForm() {
   const [school, setSchool] = useState("");
   const [stateCode, setStateCode] = useState("");
   const [signature, setSignature] = useState("");
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -44,6 +46,7 @@ function ProfileForm() {
         setSchool(d.user.school ?? "");
         setStateCode(d.user.state_code ?? "");
         setSignature(d.user.signature ?? "");
+        setVoiceEnabled(!!d.user.voice_enabled);
       })
       .catch(() => {
         clearUserToken();
@@ -61,7 +64,7 @@ function ProfileForm() {
     const res = await authFetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, school, stateCode, signature }),
+      body: JSON.stringify({ name, school, stateCode, signature, voiceEnabled }),
     });
     const data = await res.json();
     setBusy(false);
@@ -199,6 +202,23 @@ function ProfileForm() {
               <span className="mt-1 block text-[12px] text-slate/80">
                 How you sign off on emails. When you ask Eli to draft one, he&rsquo;ll sign it with this
                 automatically.
+              </span>
+            </label>
+            <label className="flex items-start gap-3 border border-rule bg-bone p-4">
+              <input
+                type="checkbox"
+                checked={voiceEnabled}
+                onChange={(e) => setVoiceEnabled(e.target.checked)}
+                className="mt-1 h-4 w-4 accent-red"
+              />
+              <span>
+                <span className="flex items-center gap-2 text-[14px] font-medium text-navy-900">
+                  Voice
+                  <span className="eyebrow bg-navy-900 px-1.5 py-0.5 text-[10px] text-bone">Premium</span>
+                </span>
+                <span className="mt-1 block text-[12px] text-slate">
+                  Coach Eli reads his answers aloud in the chat. Off by default.
+                </span>
               </span>
             </label>
             {status && <p className="text-[13px] text-navy-900">{status}</p>}

@@ -11,6 +11,7 @@ import { StarterPrompts } from "./StarterPrompts";
 import { ConversationRail } from "./ConversationRail";
 import type { StateOption } from "@/lib/states-client";
 import { authFetch, getUserToken } from "@/lib/auth-client";
+import { fetchSpeech, getSpeechRecognitionCtor } from "@/lib/voice-client";
 
 interface FullState extends StateOption {
   eligibility_contact_name: string | null;
@@ -31,6 +32,12 @@ export function CoachApp() {
   const [phase, setPhase] = useState<PortraitPhase>("idle");
   const [openChunkId, setOpenChunkId] = useState<string | null>(null);
   const [railOpen, setRailOpen] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const micSupported = typeof window !== "undefined" && !!getSpeechRecognitionCtor();
   const scrollRef = useRef<HTMLDivElement>(null);
   // Only auto-follow new content while the reader is already at (or near)
   // the bottom. Otherwise every streamed word yanks them back down —
@@ -51,6 +58,13 @@ export function CoachApp() {
       .catch(() => setStates([]));
     const saved = typeof window !== "undefined" ? window.localStorage.getItem(STATE_STORAGE_KEY) : null;
     if (saved) setStateCode(saved);
+
+    if (getUserToken()) {
+      authFetch("/api/profile")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => setVoiceEnabled(!!d?.user?.voice_enabled))
+        .catch(() => {});
+    }
   }, []);
 
   useEffect(() => {
@@ -94,6 +108,56 @@ export function CoachApp() {
   function startNewConversation() {
     setConversationId(null);
     setMessages([]);
+  }
+
+  function stopSpeaking() {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setSpeakingId(null);
+  }
+
+  async function speak(message: ChatMessage) {
+    if (speakingId === message.id) {
+      stopSpeaking();
+      return;
+    }
+    stopSpeaking();
+    setSpeakingId(message.id);
+    const blob = await fetchSpeech(message.content);
+    if (!blob) {
+      setSpeakingId(null);
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audioRef.current = audio;
+    audio.onended = () => {
+      setSpeakingId((id) => (id === message.id ? null : id));
+      URL.revokeObjectURL(url);
+    };
+    audio.play().catch(() => setSpeakingId(null));
+  }
+
+  function toggleMic() {
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) return;
+    const recognition = new Ctor();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (e: any) => {
+      const transcript = e.results?.[0]?.[0]?.transcript;
+      if (transcript) setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+    };
+    recognition.onend = () => setListening(false);
+    recognition.onerror = () => setListening(false);
+    recognitionRef.current = recognition;
+    setListening(true);
+    recognition.start();
   }
 
   async function send(text: string) {
@@ -155,6 +219,9 @@ export function CoachApp() {
           authFetch(`/api/conversations?state=${stateCode}`)
             .then((r) => (r.ok ? r.json() : { conversations: [] }))
             .then((d) => setConversations(d.conversations ?? []));
+          if (voiceEnabled && assistantText) {
+            speak({ id: assistantId, role: "assistant", content: assistantText });
+          }
         }
       }
     }
@@ -246,8 +313,16 @@ export function CoachApp() {
                 <StarterPrompts onPick={send} />
               </div>
             )}
-            {messages.map((m) => (
-              <MessageBubble key={m.id} message={m} state={activeState} onOpenSource={setOpenChunkId} />
+            {messages.map((m, i) => (
+              <MessageBubble
+                key={m.id}
+                message={m}
+                state={activeState}
+                onOpenSource={setOpenChunkId}
+                onListen={speak}
+                isSpeaking={speakingId === m.id}
+                isStreaming={phase === "streaming" && i === messages.length - 1}
+              />
             ))}
           </div>
 
@@ -262,9 +337,24 @@ export function CoachApp() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask Coach Eli anything..."
+                placeholder={listening ? "Listening…" : "Ask Coach Eli anything..."}
                 className="flex-1 border border-rule px-3 py-2 text-[15px] focus:border-navy-900 focus:outline-none"
               />
+              {micSupported && (
+                <button
+                  type="button"
+                  onClick={toggleMic}
+                  title={listening ? "Stop listening" : "Speak your question"}
+                  aria-label={listening ? "Stop listening" : "Speak your question"}
+                  className={`border px-3 py-2 text-[15px] ${
+                    listening
+                      ? "border-red bg-red text-white"
+                      : "border-navy-900 text-navy-900 hover:bg-navy-900 hover:text-bone"
+                  }`}
+                >
+                  🎤
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={phase !== "idle"}

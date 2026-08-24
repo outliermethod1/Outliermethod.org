@@ -43,7 +43,7 @@ export async function middleware(req: NextRequest) {
   // Coach Eli's API surface — same two paths in. /api/export is opened via
   // window.open (a plain navigation, no custom headers possible), so it also
   // accepts the token as a ?token= query param as a fallback to the header.
-  const COACH_API_PREFIXES = ["/api/chat", "/api/conversations", "/api/export"];
+  const COACH_API_PREFIXES = ["/api/chat", "/api/conversations", "/api/export", "/api/tts"];
   if (COACH_API_PREFIXES.some((p) => pathname.startsWith(p))) {
     const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
     const queryToken = pathname.startsWith("/api/export") ? req.nextUrl.searchParams.get("token") : null;
@@ -67,5 +67,6 @@ export const config = {
     "/api/chat/:path*",
     "/api/conversations/:path*",
     "/api/export/:path*",
+    "/api/tts/:path*",
   ],
 };

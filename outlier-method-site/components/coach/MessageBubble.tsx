@@ -24,10 +24,16 @@ export function MessageBubble({
   message,
   state,
   onOpenSource,
+  onListen,
+  isSpeaking,
+  isStreaming,
 }: {
   message: ChatMessage;
   state: (StateOption & ContactInfo) | null;
   onOpenSource: (chunkId: string) => void;
+  onListen?: (message: ChatMessage) => void;
+  isSpeaking?: boolean;
+  isStreaming?: boolean;
 }) {
   const isUser = message.role === "user";
   const parts = renderWithChips(message.content, onOpenSource);
@@ -43,6 +49,14 @@ export function MessageBubble({
       >
         <div className="whitespace-pre-wrap">{parts}</div>
         {!isUser && message.mode === "A" && <DisclaimerBlock state={state} />}
+        {!isUser && onListen && message.content && !isStreaming && (
+          <button
+            onClick={() => onListen(message)}
+            className="mt-2 flex items-center gap-1 text-[12px] text-navy-700 hover:text-red"
+          >
+            {isSpeaking ? "◼ Stop" : "🔊 Listen"}
+          </button>
+        )}
       </div>
     </div>
   );

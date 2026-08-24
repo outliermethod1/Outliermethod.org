@@ -155,12 +155,14 @@ create table if not exists users (
   signature text, -- how they sign emails; Eli signs drafted emails with this when it's on file
   reset_token text,
   reset_expires timestamptz,
+  voice_enabled boolean not null default false, -- premium toggle: read Eli's answers aloud via ElevenLabs
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 alter table users add column if not exists signature text;
 alter table users add column if not exists reset_token text;
 alter table users add column if not exists reset_expires timestamptz;
+alter table users add column if not exists voice_enabled boolean not null default false;
 create index if not exists users_verification_token_idx on users (verification_token);
 create index if not exists users_reset_token_idx on users (reset_token);
 

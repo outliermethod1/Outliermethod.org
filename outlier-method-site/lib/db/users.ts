@@ -14,6 +14,7 @@ export interface User {
   signature: string | null;
   reset_token: string | null;
   reset_expires: string | null;
+  voice_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -78,6 +79,7 @@ export interface ProfileUpdate {
   state_code?: string | null;
   avatar_url?: string;
   signature?: string;
+  voice_enabled?: boolean;
 }
 
 export async function updateProfile(userId: string, update: ProfileUpdate): Promise<User | null> {
@@ -88,6 +90,7 @@ export async function updateProfile(userId: string, update: ProfileUpdate): Prom
        state_code = coalesce($4, state_code),
        avatar_url = coalesce($5, avatar_url),
        signature = coalesce($6, signature),
+       voice_enabled = coalesce($7, voice_enabled),
        updated_at = now()
      where id = $1
      returning *`,
@@ -98,6 +101,7 @@ export async function updateProfile(userId: string, update: ProfileUpdate): Prom
       update.state_code ?? null,
       update.avatar_url ?? null,
       update.signature ?? null,
+      update.voice_enabled ?? null,
     ]
   );
 }
