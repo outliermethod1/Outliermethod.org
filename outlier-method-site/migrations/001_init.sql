@@ -230,3 +230,35 @@ create table if not exists form_templates (
   updated_at timestamptz not null default now()
 );
 create index if not exists form_templates_level_idx on form_templates (level, category);
+
+-- Recurring, admin-managed bylaw deadlines per state — the "compliance
+-- calendar" layer on top of the bylaw corpus. month/day repeats every year;
+-- this is deliberately a manually-curated starter set per state (auto-
+-- extracting deadlines from raw bylaw text across 55 governing bodies
+-- reliably is a much bigger project) rather than derived automatically.
+create table if not exists state_deadlines (
+  id uuid primary key default gen_random_uuid(),
+  state_code text not null references states(state_code) on delete cascade,
+  title text not null,
+  description text,
+  month int not null, -- 1-12
+  day int not null, -- 1-31
+  category text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists state_deadlines_state_idx on state_deadlines (state_code, month, day);
+
+-- Personal reminders a user saves — either self-added, or saved by Eli via
+-- the save_deadline tool when he states a concrete, dated deadline in an
+-- answer (source_message_id links back to that exact exchange/audit record).
+create table if not exists user_deadlines (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  title text not null,
+  description text,
+  due_date date not null,
+  source_message_id uuid references messages(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index if not exists user_deadlines_user_idx on user_deadlines (user_id, due_date);

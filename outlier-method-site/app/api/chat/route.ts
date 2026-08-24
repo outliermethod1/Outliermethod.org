@@ -102,7 +102,10 @@ export async function POST(req: NextRequest) {
     // Admin sessions and anonymous visitors have no bearer token, so this is
     // null for them — Eli just won't have a signature to sign with.
     const currentUser = identity.userId ? await getCurrentUser() : null;
-    const result = await runCoachEli(stateCode, history, { signature: currentUser?.signature ?? null });
+    const result = await runCoachEli(stateCode, history, {
+      signature: currentUser?.signature ?? null,
+      userId: identity.userId,
+    });
     stream = result.stream;
     retrievedChunks = result.retrievedChunks;
   } catch (err) {

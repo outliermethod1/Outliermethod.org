@@ -98,6 +98,9 @@ export function ConversationRail({
           <Link href="/forms" className="text-[13px] text-bone/70 hover:text-bone">
             Forms
           </Link>
+          <Link href="/calendar" className="text-[13px] text-bone/70 hover:text-bone">
+            Calendar
+          </Link>
           <Link href="/bylaws" className="text-[13px] text-bone/70 hover:text-bone">
             Bylaw Library
           </Link>

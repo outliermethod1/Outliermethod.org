@@ -3,6 +3,7 @@ import { buildSystemPrompt } from "./prompt";
 import { retrieveBylawChunks } from "./retrieval";
 import { getState } from "../db/states";
 import { searchSchools } from "../db/schools";
+import { createUserDeadline } from "../db/deadlines";
 import type { BylawChunk } from "../db/types";
 
 const MODEL = "claude-sonnet-5";
@@ -28,26 +29,48 @@ const WEB_SEARCH_TOOL = {
   max_uses: 3,
 } as unknown as Anthropic.Tool;
 
-const TOOLS: Anthropic.Tool[] = [
-  WEB_SEARCH_TOOL,
-  {
-    name: "lookup_school",
-    description:
-      "Look up a member school's official classification and district/region within the current state, " +
-      "sourced from the state association's own classification list. Use this whenever a specific school " +
-      "is named and its classification or district matters to the answer (e.g. classification & scheduling " +
-      "questions). Do not guess a school's classification without calling this.",
-    input_schema: {
-      type: "object",
-      properties: {
-        name: { type: "string", description: "The school name as given by the user, e.g. \"Cherry Creek\"." },
-      },
-      required: ["name"],
+const LOOKUP_SCHOOL_TOOL: Anthropic.Tool = {
+  name: "lookup_school",
+  description:
+    "Look up a member school's official classification and district/region within the current state, " +
+    "sourced from the state association's own classification list. Use this whenever a specific school " +
+    "is named and its classification or district matters to the answer (e.g. classification & scheduling " +
+    "questions). Do not guess a school's classification without calling this.",
+  input_schema: {
+    type: "object",
+    properties: {
+      name: { type: "string", description: "The school name as given by the user, e.g. \"Cherry Creek\"." },
     },
+    required: ["name"],
   },
-];
+};
 
-async function executeTool(name: string, input: Record<string, unknown>, stateCode: string): Promise<unknown> {
+const SAVE_DEADLINE_TOOL: Anthropic.Tool = {
+  name: "save_deadline",
+  description:
+    "Save a concrete, dated deadline to the user's personal compliance calendar. Call this whenever you " +
+    "state a specific date or a clearly calculable one (e.g. 'you have until March 1st', 'the window closes " +
+    "10 school days after enrollment' once you and the user have worked out the actual date) that the user " +
+    "would want tracked and reminded about — a hardship petition deadline, a transfer eligibility window " +
+    "closing, a classification appeal deadline, an officials certification renewal, etc. Do not call this for " +
+    "vague or hypothetical dates, or ones you haven't actually stated to the user in this answer.",
+  input_schema: {
+    type: "object",
+    properties: {
+      title: { type: "string", description: "Short label, e.g. \"Hardship petition deadline — Jordan Ellis\"." },
+      due_date: { type: "string", description: "ISO date, YYYY-MM-DD." },
+      description: { type: "string", description: "One or two sentences of context, e.g. which bylaw and why." },
+    },
+    required: ["title", "due_date"],
+  },
+};
+
+async function executeTool(
+  name: string,
+  input: Record<string, unknown>,
+  stateCode: string,
+  userId: string | null
+): Promise<unknown> {
   if (name === "lookup_school") {
     const nameQuery = String(input.name ?? "");
     const matches = await searchSchools(stateCode, nameQuery, 5);
@@ -65,13 +88,25 @@ async function executeTool(name: string, input: Record<string, unknown>, stateCo
       })),
     };
   }
+  if (name === "save_deadline") {
+    if (!userId) {
+      return { saved: false, message: "No logged-in user to save this to — mention they can save it once they have an account." };
+    }
+    const title = String(input.title ?? "").slice(0, 200);
+    const dueDate = String(input.due_date ?? "");
+    if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+      return { saved: false, message: "Missing or malformed title/due_date." };
+    }
+    await createUserDeadline(userId, title, (input.description as string) ?? null, dueDate, null);
+    return { saved: true };
+  }
   return { error: `Unknown tool: ${name}` };
 }
 
 export async function runCoachEli(
   stateCode: string,
   history: ChatTurn[],
-  opts: { signature?: string | null } = {}
+  opts: { signature?: string | null; userId?: string | null } = {}
 ): Promise<StreamResult> {
   const state = await getState(stateCode);
   if (!state) {
@@ -81,12 +116,18 @@ export async function runCoachEli(
   const lastUserMessage = [...history].reverse().find((m) => m.role === "user");
   const chunks = lastUserMessage ? await retrieveBylawChunks(stateCode, lastUserMessage.content) : [];
 
-  const system = buildSystemPrompt(state, chunks, { signature: opts.signature ?? null });
+  const userId = opts.userId ?? null;
+  const system = buildSystemPrompt(state, chunks, { signature: opts.signature ?? null, hasAccount: !!userId });
 
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error("ANTHROPIC_API_KEY is not set.");
   }
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  // save_deadline only makes sense for a real logged-in user — an anonymous
+  // visitor or admin session has no personal calendar to save into.
+  const tools: Anthropic.Tool[] = userId
+    ? [WEB_SEARCH_TOOL, LOOKUP_SCHOOL_TOOL, SAVE_DEADLINE_TOOL]
+    : [WEB_SEARCH_TOOL, LOOKUP_SCHOOL_TOOL];
 
   async function* textStream(): AsyncGenerator<string> {
     let messages: Anthropic.MessageParam[] = history.map((m) => ({ role: m.role, content: m.content }));
@@ -96,7 +137,7 @@ export async function runCoachEli(
         model: MODEL,
         max_tokens: 2048,
         system,
-        tools: TOOLS,
+        tools,
         messages,
       });
 
@@ -116,7 +157,9 @@ export async function runCoachEli(
         toolUseBlocks.map(async (block) => ({
           type: "tool_result" as const,
           tool_use_id: block.id,
-          content: JSON.stringify(await executeTool(block.name, block.input as Record<string, unknown>, stateCode)),
+          content: JSON.stringify(
+            await executeTool(block.name, block.input as Record<string, unknown>, stateCode, userId)
+          ),
         }))
       );
 

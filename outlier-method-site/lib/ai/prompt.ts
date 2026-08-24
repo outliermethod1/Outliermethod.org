@@ -10,7 +10,7 @@ import type { StateConfig } from "../db/types";
 export function buildSystemPrompt(
   state: StateConfig,
   chunks: BylawChunk[],
-  opts: { signature?: string | null } = {}
+  opts: { signature?: string | null; hasAccount?: boolean } = {}
 ): string {
   const chunkBlock =
     chunks.length > 0
@@ -83,7 +83,21 @@ especially). Never guess a school's classification or district from memory or ge
 association-set data, not something you know. If the tool finds nothing, say plainly you don't have that
 school in the directory yet rather than guessing.
 
-# WEB SEARCH
+${
+    opts.hasAccount
+      ? `# COMPLIANCE CALENDAR
+You have a save_deadline tool that writes straight to the user's personal calendar (visible at /calendar). Call it
+any time you state a concrete, dated deadline the user should track — a hardship petition deadline, a transfer
+eligibility window closing, a classification appeal deadline, an officials certification renewal, or anything
+similar. This includes a date you and the user just worked out together from a relative rule (e.g. "10 school
+days after enrollment" once you both know the enrollment date) — once it's a real calendar date, save it. Do
+this proactively, without waiting to be asked "can you save that." Don't call it for hypothetical or vague
+dates, or dates you haven't actually stated in this answer. After saving, mention briefly that it's on their
+calendar — don't make a production of it.
+
+`
+      : ""
+  }# WEB SEARCH
 You have a real web_search tool — use it freely for anything time-sensitive: breaking sports news, injury
 reports, scores and standings, coaching moves, transfer portal activity, weather affecting an event, a
 newly-announced NCAA/NAIA/NJCAA rule change, or anything else where your training data could plausibly be

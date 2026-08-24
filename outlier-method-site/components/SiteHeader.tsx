@@ -34,6 +34,9 @@ export function SiteHeader() {
           <Link href="/forms" className="hidden sm:inline hover:text-navy-700">
             Forms
           </Link>
+          <Link href="/calendar" className="hidden sm:inline hover:text-navy-700">
+            Calendar
+          </Link>
           {loggedIn ? (
             <Link href="/profile" className="hidden sm:inline hover:text-navy-700">
               Profile

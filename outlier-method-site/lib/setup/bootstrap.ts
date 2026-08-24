@@ -11,6 +11,7 @@ import { ingestPdf } from "../ingest/ingest";
 import { STATE_CONFIG_DATA } from "../../scripts/state-config-data";
 import { FORM_TEMPLATES_DATA } from "../../scripts/form-templates-data";
 import { listFormTemplates, createFormTemplate } from "../db/forms";
+import { listStateDeadlines, createStateDeadline } from "../db/deadlines";
 
 export async function runMigration(): Promise<string> {
   const sql = fs.readFileSync(path.join(process.cwd(), "migrations/001_init.sql"), "utf-8");
@@ -241,6 +242,44 @@ export async function ingestRealHandbook(stateCode: string): Promise<HandbookIng
 }
 
 /** Idempotent: skips a template if one with the same title+level already exists. */
+// Illustrative starter set for the demo state, same spirit as the Colorado
+// bylaw placeholder text — real dates need verification against the actual
+// current CHSAA handbook before an AD relies on them. Every other state
+// starts with an empty calendar until an admin adds real deadlines via
+// /admin/deadlines.
+const CO_DEADLINES_DEMO = [
+  {
+    title: "Hardship petition filing deadline (fall)",
+    description: "Illustrative — verify against the current CHSAA handbook before relying on this date.",
+    month: 9,
+    day: 15,
+    category: "amateurism_awards",
+  },
+  {
+    title: "Transfer eligibility appeal window closes",
+    description: "Illustrative — verify against the current CHSAA handbook before relying on this date.",
+    month: 10,
+    day: 1,
+    category: "transfer_residence",
+  },
+  {
+    title: "Classification appeal deadline",
+    description: "Illustrative — verify against the current CHSAA handbook before relying on this date.",
+    month: 3,
+    day: 1,
+    category: "classification_scheduling",
+  },
+];
+
+export async function seedDeadlinesDemo(): Promise<string> {
+  const existing = await listStateDeadlines("co");
+  if (existing.length > 0) return "Colorado demo deadlines already present — skipped.";
+  for (const d of CO_DEADLINES_DEMO) {
+    await createStateDeadline({ state_code: "co", ...d });
+  }
+  return `Seeded Colorado with ${CO_DEADLINES_DEMO.length} demo deadlines (illustrative placeholder dates).`;
+}
+
 export async function seedFormTemplates(): Promise<string> {
   const existing = await listFormTemplates();
   const existingKey = new Set(existing.map((t) => `${t.level}:${t.title}`));
