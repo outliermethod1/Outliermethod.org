@@ -32,6 +32,17 @@ export function CoachApp() {
   const [openChunkId, setOpenChunkId] = useState<string | null>(null);
   const [railOpen, setRailOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Only auto-follow new content while the reader is already at (or near)
+  // the bottom. Otherwise every streamed word yanks them back down —
+  // that's the "bouncing" the scroll used to do while Eli was still typing.
+  const stickToBottomRef = useRef(true);
+
+  function handleScroll() {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickToBottomRef.current = distanceFromBottom < 80;
+  }
 
   useEffect(() => {
     fetch("/api/states")
@@ -57,7 +68,12 @@ export function CoachApp() {
   }, [stateCode, router]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    if (!stickToBottomRef.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    // Instant, not smooth — a fresh smooth-scroll animation on every single
+    // streamed delta is exactly what produced the bouncing in the first place.
+    el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
   }, [messages]);
 
   const activeState = states.find((s) => s.state_code === stateCode) ?? null;
@@ -83,6 +99,7 @@ export function CoachApp() {
   async function send(text: string) {
     if (!stateCode || !text.trim() || phase !== "idle") return;
 
+    stickToBottomRef.current = true;
     const userMsg: ChatMessage = { id: `local-${Date.now()}`, role: "user", content: text };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
@@ -219,7 +236,11 @@ export function CoachApp() {
         />
 
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-6 sm:px-8">
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex-1 space-y-4 overflow-y-auto px-4 py-6 sm:px-8"
+          >
             {messages.length === 0 && (
               <div className="mx-auto max-w-2xl pt-10">
                 <StarterPrompts onPick={send} />
