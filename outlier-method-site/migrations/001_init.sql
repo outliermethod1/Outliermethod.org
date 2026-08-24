@@ -92,32 +92,6 @@ create table if not exists crawler_alerts (
   acknowledged_at timestamptz
 );
 
--- Conversations
-create table if not exists conversations (
-  id uuid primary key default gen_random_uuid(),
-  state_code text not null references states(state_code),
-  title text not null default 'New conversation',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create table if not exists messages (
-  id uuid primary key default gen_random_uuid(),
-  conversation_id uuid not null references conversations(id) on delete cascade,
-  role text not null, -- 'user' | 'assistant'
-  content text not null,
-  mode text, -- 'A' | 'B' | 'mixed', assistant messages only
-  created_at timestamptz not null default now()
-);
-
--- Audit log: which chunks backed a given Mode A answer
-create table if not exists chat_logs (
-  id uuid primary key default gen_random_uuid(),
-  message_id uuid not null references messages(id) on delete cascade,
-  retrieved_chunk_ids uuid[] not null default '{}',
-  created_at timestamptz not null default now()
-);
-
 -- Member schools, sourced from each state association's official classification/
 -- realignment list (not MaxPreps — the association is the authority on its own
 -- classification, and there's no public MaxPreps API to pull from anyway).
@@ -165,6 +139,67 @@ alter table users add column if not exists reset_expires timestamptz;
 alter table users add column if not exists voice_enabled boolean not null default false;
 create index if not exists users_verification_token_idx on users (verification_token);
 create index if not exists users_reset_token_idx on users (reset_token);
+
+-- Anonymous visitor sessions — lets someone use Coach Eli for a handful of
+-- free questions before an account exists. id is the value carried in the
+-- signed ads_anon_session cookie (lib/anon-session.ts); ip_hash is a soft
+-- secondary counter (see lib/anon-quota.ts) so clearing cookies doesn't
+-- trivially reset the free quota, without hard-blocking shared/NAT'd IPs.
+create table if not exists anon_sessions (
+  id uuid primary key,
+  exchange_count int not null default 0,
+  ip_hash text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create table if not exists anon_ip_usage (
+  ip_hash text primary key,
+  exchange_count int not null default 0,
+  updated_at timestamptz not null default now()
+);
+
+-- Conversations
+create table if not exists conversations (
+  id uuid primary key default gen_random_uuid(),
+  state_code text not null references states(state_code),
+  title text not null default 'New conversation',
+  user_id uuid references users(id) on delete cascade,
+  anon_session_id uuid references anon_sessions(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table conversations add column if not exists user_id uuid references users(id) on delete cascade;
+alter table conversations add column if not exists anon_session_id uuid references anon_sessions(id) on delete cascade;
+create index if not exists conversations_user_id_idx on conversations (user_id);
+create index if not exists conversations_anon_session_id_idx on conversations (anon_session_id);
+
+create table if not exists messages (
+  id uuid primary key default gen_random_uuid(),
+  conversation_id uuid not null references conversations(id) on delete cascade,
+  role text not null, -- 'user' | 'assistant'
+  content text not null,
+  mode text, -- 'A' | 'B' | 'mixed', assistant messages only
+  created_at timestamptz not null default now()
+);
+
+-- Audit log: which chunks backed a given Mode A answer
+create table if not exists chat_logs (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references messages(id) on delete cascade,
+  retrieved_chunk_ids uuid[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+
+-- Failed/successful admin login attempts, for rate limiting and lockout
+-- (see app/api/admin/login/route.ts). Durable in Postgres rather than
+-- in-memory since serverless instances don't share memory across requests.
+create table if not exists admin_login_attempts (
+  id uuid primary key default gen_random_uuid(),
+  ip text not null,
+  success boolean not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists admin_login_attempts_ip_time_idx on admin_login_attempts (ip, created_at);
 
 -- Prebuilt operational document templates, browsable at /forms. Separate
 -- from Coach Eli's on-demand drafting (Mode B) — this is a quick-reference

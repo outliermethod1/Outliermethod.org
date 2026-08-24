@@ -5,6 +5,7 @@ import { query } from "@/lib/db/client";
 import { getChunksByIds } from "@/lib/db/chunks";
 import { buildConversationPdf } from "@/lib/export/pdf";
 import type { BylawChunk } from "@/lib/db/types";
+import { resolveIdentity, ownsConversation } from "@/lib/request-identity";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,11 @@ export async function GET(req: NextRequest) {
 
   const conversation = await getConversation(conversationId);
   if (!conversation) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const identity = await resolveIdentity(req);
+  if (!ownsConversation(identity, conversation)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const [messages, state] = await Promise.all([listMessages(conversationId), getState(conversation.state_code)]);
   if (!state) return NextResponse.json({ error: "State not configured" }, { status: 500 });

@@ -14,6 +14,7 @@ export function ConversationRail({
   onSelect,
   onNew,
   onExport,
+  onDelete,
   mobileOpen,
   onCloseMobile,
 }: {
@@ -22,6 +23,7 @@ export function ConversationRail({
   onSelect: (id: string) => void;
   onNew: () => void;
   onExport: (id: string) => void;
+  onDelete: (id: string) => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
 }) {
@@ -46,13 +48,20 @@ export function ConversationRail({
             <button onClick={() => onSelect(c.id)} className="flex-1 truncate text-left text-bone/85 hover:text-bone">
               {c.title}
             </button>
-            <button
-              onClick={() => onExport(c.id)}
-              className="ml-2 shrink-0 text-bone/50 opacity-0 hover:text-red group-hover:opacity-100"
-              title="Export to PDF"
-            >
-              ⇩
-            </button>
+            <div className="ml-2 flex shrink-0 items-center gap-2 opacity-0 group-hover:opacity-100">
+              <button onClick={() => onExport(c.id)} className="text-bone/50 hover:text-bone" title="Export to PDF">
+                ⇩
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm(`Delete "${c.title}"? This can't be undone.`)) onDelete(c.id);
+                }}
+                className="text-bone/50 hover:text-red"
+                title="Delete conversation"
+              >
+                🗑
+              </button>
+            </div>
           </div>
         ))}
       </div>

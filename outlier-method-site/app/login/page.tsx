@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { setUserToken } from "@/lib/auth-client";
+import { authFetch, setUserToken } from "@/lib/auth-client";
 
 function LoginForm() {
   const router = useRouter();
@@ -33,7 +33,21 @@ function LoginForm() {
       return;
     }
     setUserToken(data.token);
-    const next = params.get("next");
+
+    const conversationId = params.get("conversationId");
+    if (conversationId) {
+      // Best-effort — if this fails the visitor still gets logged in, they
+      // just land on a fresh conversation instead of resuming the old one.
+      await authFetch("/api/conversations/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId }),
+      }).catch(() => {});
+    }
+
+    let next = params.get("next");
+    if (next && conversationId) next = `${next}?resume=${conversationId}`;
+
     if (!data.profileComplete) {
       router.push(`/profile?setup=1${next ? `&next=${encodeURIComponent(next)}` : ""}`);
     } else {

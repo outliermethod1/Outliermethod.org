@@ -1,16 +1,37 @@
 import { query, queryOne } from "./client";
 import type { Conversation, Message } from "./types";
 
-export async function createConversation(stateCode: string, title = "New conversation"): Promise<Conversation> {
+export interface ConversationOwner {
+  userId?: string | null;
+  anonSessionId?: string | null;
+}
+
+export async function createConversation(
+  stateCode: string,
+  title = "New conversation",
+  owner: ConversationOwner = {}
+): Promise<Conversation> {
   const row = await queryOne<Conversation>(
-    `insert into conversations (state_code, title) values ($1, $2) returning *`,
-    [stateCode.toLowerCase(), title]
+    `insert into conversations (state_code, title, user_id, anon_session_id) values ($1, $2, $3, $4) returning *`,
+    [stateCode.toLowerCase(), title, owner.userId ?? null, owner.anonSessionId ?? null]
   );
   if (!row) throw new Error("Failed to create conversation");
   return row;
 }
 
-export async function listConversations(stateCode?: string): Promise<Conversation[]> {
+/** Conversations owned by a given user — never another user's, never an anonymous session's. */
+export async function listConversations(stateCode: string | undefined, userId: string): Promise<Conversation[]> {
+  if (stateCode) {
+    return query<Conversation>(
+      `select * from conversations where state_code = $1 and user_id = $2 order by updated_at desc`,
+      [stateCode.toLowerCase(), userId]
+    );
+  }
+  return query<Conversation>(`select * from conversations where user_id = $1 order by updated_at desc`, [userId]);
+}
+
+/** Every conversation regardless of owner — admin use only (the review/health tooling, not a tester-facing list). */
+export async function listAllConversations(stateCode?: string): Promise<Conversation[]> {
   if (stateCode) {
     return query<Conversation>(
       `select * from conversations where state_code = $1 order by updated_at desc`,
@@ -22,6 +43,29 @@ export async function listConversations(stateCode?: string): Promise<Conversatio
 
 export async function getConversation(id: string): Promise<Conversation | null> {
   return queryOne<Conversation>(`select * from conversations where id = $1`, [id]);
+}
+
+/**
+ * Reassigns an anonymous conversation to a newly-created/logged-in user,
+ * once — only succeeds if the conversation is still owned by the exact
+ * anon session presenting the claim (the signed cookie), so one visitor
+ * can't claim another's conversation by guessing an id.
+ */
+export async function claimConversation(
+  conversationId: string,
+  anonSessionId: string,
+  userId: string
+): Promise<Conversation | null> {
+  return queryOne<Conversation>(
+    `update conversations set user_id = $3, anon_session_id = null, updated_at = now()
+     where id = $1 and anon_session_id = $2
+     returning *`,
+    [conversationId, anonSessionId, userId]
+  );
+}
+
+export async function deleteConversation(id: string): Promise<void> {
+  await query(`delete from conversations where id = $1`, [id]);
 }
 
 export async function touchConversation(id: string, title?: string): Promise<void> {

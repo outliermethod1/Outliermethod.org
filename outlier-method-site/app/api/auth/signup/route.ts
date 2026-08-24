@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUser, getUserByEmail } from "@/lib/db/users";
-import { generateVerificationToken, hashPassword } from "@/lib/user-auth";
+import { createUserSessionToken, generateVerificationToken, hashPassword } from "@/lib/user-auth";
 import { sendEmail, ADMIN_NOTIFY_EMAIL } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -48,5 +48,12 @@ export async function POST(req: NextRequest) {
     html: `<p>New signup: ${user.email}</p><p>Signed up at ${new Date().toISOString()}.</p>`,
   });
 
-  return NextResponse.json({ ok: true, message: "Check your email to verify your account." });
+  // Log in immediately rather than requiring the verification email to be
+  // clicked first — the whole point of removing the pre-chat signup wall is
+  // a frictionless path in, and gating first login on an email round-trip
+  // (especially with no email provider configured yet) defeats that. The
+  // verification link is still sent and still works; it's just no longer a
+  // hard blocker. Reconsider this if spam/abuse becomes a real problem.
+  const sessionToken = await createUserSessionToken(user.id);
+  return NextResponse.json({ ok: true, token: sessionToken, profileComplete: false });
 }

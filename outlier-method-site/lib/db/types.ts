@@ -68,6 +68,8 @@ export interface Conversation {
   id: string;
   state_code: string;
   title: string;
+  user_id: string | null;
+  anon_session_id: string | null;
   created_at: string;
   updated_at: string;
 }

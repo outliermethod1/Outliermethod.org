@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { StateSelector } from "./StateSelector";
 import { PortraitAvatar, type PortraitPhase } from "./PortraitAvatar";
 import { MessageBubble, type ChatMessage } from "./MessageBubble";
 import { SourcePanel } from "./SourcePanel";
 import { StarterPrompts } from "./StarterPrompts";
 import { ConversationRail } from "./ConversationRail";
+import { FreeQuestionGate } from "./FreeQuestionGate";
 import type { StateOption } from "@/lib/states-client";
 import { authFetch, getUserToken } from "@/lib/auth-client";
 import { fetchSpeech, getSpeechRecognitionCtor } from "@/lib/voice-client";
@@ -23,6 +24,7 @@ const STATE_STORAGE_KEY = "ad-chief-of-staff:state-code";
 
 export function CoachApp() {
   const router = useRouter();
+  const params = useSearchParams();
   const [states, setStates] = useState<FullState[]>([]);
   const [stateCode, setStateCode] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -36,6 +38,10 @@ export function CoachApp() {
   const [voiceMode, setVoiceMode] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
+  // null = not yet known, true = logged in (user or admin), false = anonymous
+  const [hasAccount, setHasAccount] = useState<boolean | null>(null);
+  const [remainingFree, setRemainingFree] = useState<number | null>(null);
+  const [showGate, setShowGate] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   // Mirrors voiceMode for the async audio.onended callback below, which
@@ -78,16 +84,32 @@ export function CoachApp() {
   useEffect(() => {
     if (!stateCode) return;
     window.localStorage.setItem(STATE_STORAGE_KEY, stateCode);
-    authFetch(`/api/conversations?state=${stateCode}`).then((r) => {
-      if (r.status === 401) {
-        router.push("/login?next=/coach");
-        return { conversations: [] };
-      }
-      return r.ok ? r.json() : { conversations: [] };
-    })
+    // 401 here just means "anonymous visitor" now, not "go log in" — Coach
+    // Eli is public. Saved conversation history (this rail) is the account
+    // feature; an anonymous visitor simply doesn't get one.
+    authFetch(`/api/conversations?state=${stateCode}`)
+      .then((r) => {
+        setHasAccount(r.status !== 401);
+        return r.ok ? r.json() : { conversations: [] };
+      })
       .then((d) => setConversations(d.conversations ?? []))
       .catch(() => setConversations([]));
-  }, [stateCode, router]);
+  }, [stateCode]);
+
+  // A ?resume=<conversationId> arrives right after signing up/logging in
+  // from the free-question gate — load that conversation back up instead
+  // of starting fresh, once we know the account fetch above succeeded.
+  useEffect(() => {
+    if (hasAccount !== true) return;
+    const resume = params.get("resume");
+    if (!resume) return;
+    loadConversation(resume);
+    setShowGate(false);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("resume");
+    window.history.replaceState({}, "", url.toString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAccount]);
 
   useEffect(() => {
     if (!stickToBottomRef.current) return;
@@ -103,10 +125,7 @@ export function CoachApp() {
   async function loadConversation(id: string) {
     setConversationId(id);
     const res = await authFetch(`/api/conversations/${id}`);
-    if (res.status === 401) {
-      router.push("/login?next=/coach");
-      return;
-    }
+    if (!res.ok) return;
     const data = await res.json();
     setMessages(
       (data.messages ?? []).map((m: any) => ({ id: m.id, role: m.role, content: m.content, mode: m.mode }))
@@ -116,6 +135,7 @@ export function CoachApp() {
   function startNewConversation() {
     setConversationId(null);
     setMessages([]);
+    setShowGate(false);
   }
 
   function stopSpeaking() {
@@ -195,7 +215,7 @@ export function CoachApp() {
   }
 
   async function send(text: string) {
-    if (!stateCode || !text.trim() || phase !== "idle") return;
+    if (!stateCode || !text.trim() || phase !== "idle" || showGate) return;
 
     stickToBottomRef.current = true;
     const userMsg: ChatMessage = { id: `local-${Date.now()}`, role: "user", content: text };
@@ -209,10 +229,15 @@ export function CoachApp() {
       body: JSON.stringify({ stateCode, message: text, conversationId }),
     });
 
-    if (res.status === 401) {
-      router.push("/login?next=/coach");
-      setPhase("idle");
-      return;
+    if (res.status === 403) {
+      const data = await res.json().catch(() => null);
+      if (data?.error === "free_limit_reached") {
+        setRemainingFree(0);
+        setShowGate(true);
+        setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
+        setPhase("idle");
+        return;
+      }
     }
     if (!res.body) {
       setPhase("idle");
@@ -243,6 +268,8 @@ export function CoachApp() {
 
         if (eventName === "conversation") {
           setConversationId(data.conversationId);
+        } else if (eventName === "quota") {
+          setRemainingFree(data.remaining);
         } else if (eventName === "delta") {
           assistantText += data.text;
           setMessages((prev) =>
@@ -250,9 +277,11 @@ export function CoachApp() {
           );
         } else if (eventName === "done") {
           setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, mode: data.mode } : m)));
-          authFetch(`/api/conversations?state=${stateCode}`)
-            .then((r) => (r.ok ? r.json() : { conversations: [] }))
-            .then((d) => setConversations(d.conversations ?? []));
+          if (hasAccount) {
+            authFetch(`/api/conversations?state=${stateCode}`)
+              .then((r) => (r.ok ? r.json() : { conversations: [] }))
+              .then((d) => setConversations(d.conversations ?? []));
+          }
           if ((voiceEnabled || voiceModeRef.current) && assistantText) {
             speak({ id: assistantId, role: "assistant", content: assistantText });
           }
@@ -263,6 +292,12 @@ export function CoachApp() {
     setPhase("idle");
   }
 
+  async function deleteConversation(id: string) {
+    await authFetch(`/api/conversations/${id}`, { method: "DELETE" });
+    setConversations((prev) => prev.filter((c) => c.id !== id));
+    if (conversationId === id) startNewConversation();
+  }
+
   function exportConversation(id: string) {
     // window.open can't attach an Authorization header, so a beta tester's
     // bearer token rides along as a query param instead — admin's cookie is
@@ -270,6 +305,12 @@ export function CoachApp() {
     const token = getUserToken();
     const url = `/api/export?conversationId=${id}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
     window.open(url, "_blank");
+  }
+
+  function goToAuth(kind: "signup" | "login") {
+    const qs = new URLSearchParams({ next: "/coach" });
+    if (conversationId) qs.set("conversationId", conversationId);
+    router.push(`/${kind}?${qs.toString()}`);
   }
 
   if (!stateCode) {
@@ -290,13 +331,15 @@ export function CoachApp() {
   return (
     <div className="flex h-screen flex-col bg-bone">
       <div className="flex items-center gap-3 border-b border-navy-700 bg-navy-900 px-4 py-3">
-        <button
-          onClick={() => setRailOpen(true)}
-          className="shrink-0 text-bone md:hidden"
-          aria-label="Open conversations"
-        >
-          &#9776;
-        </button>
+        {hasAccount && (
+          <button
+            onClick={() => setRailOpen(true)}
+            className="shrink-0 text-bone md:hidden"
+            aria-label="Open conversations"
+          >
+            &#9776;
+          </button>
+        )}
         <div className="shrink-0">
           <PortraitAvatar phase={phase} size={40} />
         </div>
@@ -307,6 +350,16 @@ export function CoachApp() {
           <StateSelector states={states} value={stateCode} onChange={setStateCode} theme="dark" />
         </div>
         <div className="hidden shrink-0 items-center gap-4 sm:flex">
+          {hasAccount === false && (
+            <>
+              <Link href="/login" className="text-[13px] text-bone/70 hover:text-bone">
+                Log in
+              </Link>
+              <Link href="/signup" className="text-[13px] font-medium text-bone hover:text-red">
+                Create free account
+              </Link>
+            </>
+          )}
           <Link href="/forms" className="text-[13px] text-bone/70 hover:text-bone">
             Forms
           </Link>
@@ -320,21 +373,24 @@ export function CoachApp() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <ConversationRail
-          conversations={conversations}
-          activeId={conversationId}
-          onSelect={(id) => {
-            loadConversation(id);
-            setRailOpen(false);
-          }}
-          onNew={() => {
-            startNewConversation();
-            setRailOpen(false);
-          }}
-          onExport={exportConversation}
-          mobileOpen={railOpen}
-          onCloseMobile={() => setRailOpen(false)}
-        />
+        {hasAccount && (
+          <ConversationRail
+            conversations={conversations}
+            activeId={conversationId}
+            onSelect={(id) => {
+              loadConversation(id);
+              setRailOpen(false);
+            }}
+            onNew={() => {
+              startNewConversation();
+              setRailOpen(false);
+            }}
+            onExport={exportConversation}
+            onDelete={deleteConversation}
+            mobileOpen={railOpen}
+            onCloseMobile={() => setRailOpen(false)}
+          />
+        )}
 
         <div className="flex flex-1 flex-col overflow-hidden">
           <div
@@ -342,7 +398,7 @@ export function CoachApp() {
             onScroll={handleScroll}
             className="flex-1 space-y-4 overflow-y-auto px-4 py-6 sm:px-8"
           >
-            {messages.length === 0 && (
+            {messages.length === 0 && !showGate && (
               <div className="mx-auto max-w-2xl pt-10">
                 <StarterPrompts onPick={send} />
               </div>
@@ -358,6 +414,14 @@ export function CoachApp() {
                 isStreaming={phase === "streaming" && i === messages.length - 1}
               />
             ))}
+            {showGate && (
+              <div className="mx-auto max-w-2xl">
+                <FreeQuestionGate
+                  onSignup={() => goToAuth("signup")}
+                  onLogin={() => goToAuth("login")}
+                />
+              </div>
+            )}
           </div>
 
           <form
@@ -371,10 +435,11 @@ export function CoachApp() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={listening ? "Listening…" : "Ask Coach Eli anything..."}
-                className="flex-1 border border-rule px-3 py-2 text-[15px] focus:border-navy-900 focus:outline-none"
+                placeholder={listening ? "Listening…" : showGate ? "Create a free account to keep going" : "Ask Coach Eli anything..."}
+                disabled={showGate}
+                className="flex-1 border border-rule px-3 py-2 text-[15px] focus:border-navy-900 focus:outline-none disabled:bg-bone disabled:text-slate"
               />
-              {micSupported && (
+              {micSupported && !showGate && (
                 <button
                   type="button"
                   onClick={toggleMic}
@@ -389,7 +454,7 @@ export function CoachApp() {
                   🎤
                 </button>
               )}
-              {micSupported && (
+              {micSupported && !showGate && (
                 <button
                   type="button"
                   onClick={toggleVoiceMode}
@@ -408,12 +473,19 @@ export function CoachApp() {
               )}
               <button
                 type="submit"
-                disabled={phase !== "idle"}
+                disabled={phase !== "idle" || showGate}
                 className="border border-navy-900 bg-navy-900 px-5 py-2 text-[14px] font-medium text-bone hover:bg-navy-700 disabled:opacity-50"
               >
                 Send
               </button>
             </div>
+            {hasAccount === false && remainingFree !== null && !showGate && (
+              <p className="mx-auto mt-2 max-w-3xl text-[12px] text-slate">
+                {remainingFree === 0
+                  ? "No free questions left."
+                  : `${remainingFree} free question${remainingFree === 1 ? "" : "s"} left`}
+              </p>
+            )}
           </form>
         </div>
       </div>

@@ -14,20 +14,28 @@ function bearerToken(req: NextRequest): string | undefined {
   return auth?.replace(/^Bearer\s+/i, "");
 }
 
+const NOINDEX_HEADER = "noindex, nofollow, noarchive";
+
+function withNoindex(res: NextResponse): NextResponse {
+  res.headers.set("X-Robots-Tag", NOINDEX_HEADER);
+  return res;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const isAdminPath = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
 
   if (pathname === "/admin/login" || pathname === "/api/admin/login") {
-    return NextResponse.next();
+    return withNoindex(NextResponse.next());
   }
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+  if (isAdminPath) {
     const token = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
     if (!(await verifySessionToken(token))) {
       if (pathname.startsWith("/api/admin")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return withNoindex(NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
       }
-      return NextResponse.redirect(new URL("/admin/login", req.url));
+      return withNoindex(NextResponse.redirect(new URL("/admin/login", req.url)));
     }
   }
 
@@ -43,7 +51,10 @@ export async function middleware(req: NextRequest) {
   // Coach Eli's API surface — same two paths in. /api/export is opened via
   // window.open (a plain navigation, no custom headers possible), so it also
   // accepts the token as a ?token= query param as a fallback to the header.
-  const COACH_API_PREFIXES = ["/api/chat", "/api/conversations", "/api/export", "/api/tts"];
+  // /api/chat is NOT gated here — it's a public route now (anonymous
+  // visitors get a few free questions) and does its own auth-or-anon-quota
+  // resolution internally via lib/request-identity.ts.
+  const COACH_API_PREFIXES = ["/api/conversations", "/api/export", "/api/tts"];
   if (COACH_API_PREFIXES.some((p) => pathname.startsWith(p))) {
     const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
     const queryToken = pathname.startsWith("/api/export") ? req.nextUrl.searchParams.get("token") : null;
@@ -56,7 +67,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return isAdminPath ? withNoindex(NextResponse.next()) : NextResponse.next();
 }
 
 export const config = {
@@ -64,7 +75,6 @@ export const config = {
     "/admin/:path*",
     "/api/admin/:path*",
     "/api/profile/:path*",
-    "/api/chat/:path*",
     "/api/conversations/:path*",
     "/api/export/:path*",
     "/api/tts/:path*",

@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { CoachApp } from "@/components/coach/CoachApp";
 
 export default function CoachPage() {
-  return <CoachApp />;
+  return (
+    <Suspense fallback={null}>
+      <CoachApp />
+    </Suspense>
+  );
 }

@@ -21,9 +21,8 @@ export async function POST(req: NextRequest) {
   if (!user || !(await verifyPassword(password, user.password_hash))) {
     return NextResponse.json({ error: "Incorrect email or password." }, { status: 401 });
   }
-  if (!user.email_verified) {
-    return NextResponse.json({ error: "Verify your email before logging in — check your inbox." }, { status: 403 });
-  }
+  // Email verification is no longer a login gate (see signup route) — it's
+  // still tracked and the link still works, just doesn't block first use.
 
   const token = await createUserSessionToken(user.id);
   // Returned in the body, not a cookie — the client keeps it in
