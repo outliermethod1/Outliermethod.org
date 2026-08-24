@@ -33,10 +33,18 @@ export function CoachApp() {
   const [openChunkId, setOpenChunkId] = useState<string | null>(null);
   const [railOpen, setRailOpen] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
+  // Mirrors voiceMode for the async audio.onended callback below, which
+  // closes over whatever voiceMode was at speak()-call time otherwise —
+  // a ref always reads the latest value.
+  const voiceModeRef = useRef(false);
+  useEffect(() => {
+    voiceModeRef.current = voiceMode;
+  }, [voiceMode]);
   const micSupported = typeof window !== "undefined" && !!getSpeechRecognitionCtor();
   const scrollRef = useRef<HTMLDivElement>(null);
   // Only auto-follow new content while the reader is already at (or near)
@@ -134,15 +142,14 @@ export function CoachApp() {
     audio.onended = () => {
       setSpeakingId((id) => (id === message.id ? null : id));
       URL.revokeObjectURL(url);
+      // Voice Mode conversation: once Eli finishes talking, reopen the mic
+      // for the next question automatically instead of waiting on a tap.
+      if (voiceModeRef.current) startListening();
     };
     audio.play().catch(() => setSpeakingId(null));
   }
 
-  function toggleMic() {
-    if (listening) {
-      recognitionRef.current?.stop();
-      return;
-    }
+  function startListening() {
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) return;
     const recognition = new Ctor();
@@ -151,13 +158,40 @@ export function CoachApp() {
     recognition.maxAlternatives = 1;
     recognition.onresult = (e: any) => {
       const transcript = e.results?.[0]?.[0]?.transcript;
-      if (transcript) setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      if (!transcript) return;
+      if (voiceModeRef.current) {
+        send(transcript);
+      } else {
+        setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+      }
     };
     recognition.onend = () => setListening(false);
     recognition.onerror = () => setListening(false);
     recognitionRef.current = recognition;
     setListening(true);
     recognition.start();
+  }
+
+  function toggleMic() {
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    startListening();
+  }
+
+  function toggleVoiceMode() {
+    setVoiceMode((v) => {
+      const next = !v;
+      voiceModeRef.current = next;
+      if (next) {
+        if (phase === "idle") startListening();
+      } else {
+        recognitionRef.current?.stop();
+        stopSpeaking();
+      }
+      return next;
+    });
   }
 
   async function send(text: string) {
@@ -219,7 +253,7 @@ export function CoachApp() {
           authFetch(`/api/conversations?state=${stateCode}`)
             .then((r) => (r.ok ? r.json() : { conversations: [] }))
             .then((d) => setConversations(d.conversations ?? []));
-          if (voiceEnabled && assistantText) {
+          if ((voiceEnabled || voiceModeRef.current) && assistantText) {
             speak({ id: assistantId, role: "assistant", content: assistantText });
           }
         }
@@ -272,6 +306,19 @@ export function CoachApp() {
         <div className="min-w-0 flex-1">
           <StateSelector states={states} value={stateCode} onChange={setStateCode} theme="dark" />
         </div>
+        {micSupported && (
+          <button
+            onClick={toggleVoiceMode}
+            className={`flex shrink-0 items-center gap-1.5 border px-2.5 py-1.5 text-[12px] font-medium sm:px-3 sm:text-[13px] ${
+              voiceMode
+                ? "border-red bg-red text-white"
+                : "border-bone/25 text-bone/70 hover:border-bone/50 hover:text-bone"
+            }`}
+          >
+            🎙️ <span className="hidden sm:inline">Voice Mode</span>
+            {voiceMode && <span>{listening ? "— listening" : speakingId ? "— speaking" : "— on"}</span>}
+          </button>
+        )}
         <div className="hidden shrink-0 items-center gap-4 sm:flex">
           <Link href="/forms" className="text-[13px] text-bone/70 hover:text-bone">
             Forms

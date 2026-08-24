@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/current-user";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -12,14 +11,10 @@ const DEFAULT_VOICE_ID = "pNInz6obpgDQGcFmaJgB";
 
 export async function POST(req: NextRequest) {
   // middleware.ts already confirmed some valid session (user token or admin
-  // cookie) got this far. A resolved user still needs voice_enabled on —
-  // admin (no resolvable user via bearer token) is allowed through for
-  // testing regardless of any user's toggle.
-  const user = await getCurrentUser();
-  if (user && !user.voice_enabled) {
-    return NextResponse.json({ error: "Voice isn't enabled for your account. Turn it on in your profile." }, { status: 403 });
-  }
-
+  // cookie) got this far — that's the whole gate. A user's own "Voice"
+  // profile toggle only controls whether playback happens automatically
+  // without being asked; it isn't a hard requirement to use Listen or Voice
+  // Mode, which are explicit in-the-moment choices to hear this answer.
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "ELEVENLABS_API_KEY is not set on this deployment yet." }, { status: 500 });
