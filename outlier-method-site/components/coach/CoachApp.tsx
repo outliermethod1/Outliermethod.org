@@ -306,19 +306,6 @@ export function CoachApp() {
         <div className="min-w-0 flex-1">
           <StateSelector states={states} value={stateCode} onChange={setStateCode} theme="dark" />
         </div>
-        {micSupported && (
-          <button
-            onClick={toggleVoiceMode}
-            className={`flex shrink-0 items-center gap-1.5 border px-2.5 py-1.5 text-[12px] font-medium sm:px-3 sm:text-[13px] ${
-              voiceMode
-                ? "border-red bg-red text-white"
-                : "border-bone/25 text-bone/70 hover:border-bone/50 hover:text-bone"
-            }`}
-          >
-            🎙️ <span className="hidden sm:inline">Voice Mode</span>
-            {voiceMode && <span>{listening ? "— listening" : speakingId ? "— speaking" : "— on"}</span>}
-          </button>
-        )}
         <div className="hidden shrink-0 items-center gap-4 sm:flex">
           <Link href="/forms" className="text-[13px] text-bone/70 hover:text-bone">
             Forms
@@ -400,6 +387,23 @@ export function CoachApp() {
                   }`}
                 >
                   🎤
+                </button>
+              )}
+              {micSupported && (
+                <button
+                  type="button"
+                  onClick={toggleVoiceMode}
+                  title={voiceMode ? "Turn off Voice Mode" : "Turn on Voice Mode — hands-free conversation"}
+                  className={`flex items-center gap-1 border px-3 py-2 text-[13px] font-medium ${
+                    voiceMode
+                      ? "border-red bg-red text-white"
+                      : "border-navy-900 text-navy-900 hover:bg-navy-900 hover:text-bone"
+                  }`}
+                >
+                  🎙️
+                  <span className="hidden sm:inline">
+                    Voice Mode{voiceMode && (listening ? " — listening" : speakingId ? " — speaking" : " — on")}
+                  </span>
                 </button>
               )}
               <button
