@@ -430,7 +430,7 @@ export function CoachApp() {
           >
             <div className="mx-auto flex max-w-3xl items-end gap-3">
               <div className="hidden shrink-0 sm:block">
-                <PortraitAvatar phase={phase} size={56} />
+                <PortraitAvatar phase={phase} size={88} />
               </div>
               <div className="flex flex-1 gap-2">
               <input

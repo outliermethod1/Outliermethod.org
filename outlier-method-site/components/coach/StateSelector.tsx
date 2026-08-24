@@ -18,18 +18,26 @@ export function StateSelector({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [level, setLevel] = useState<"high_school" | "college">("high_school");
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selected = states.find((s) => s.state_code === value) ?? null;
 
+  // Open on whichever tab the current selection belongs to, so switching
+  // states doesn't silently land you on the wrong tab.
+  useEffect(() => {
+    if (open && selected) setLevel(selected.level);
+  }, [open, selected]);
+
   const filtered = useMemo(() => {
+    const byLevel = states.filter((s) => s.level === level);
     const q = query.trim().toLowerCase();
-    if (!q) return states;
-    return states.filter(
+    if (!q) return byLevel;
+    return byLevel.filter(
       (s) => s.state_name.toLowerCase().includes(q) || s.association_name.toLowerCase().includes(q)
     );
-  }, [states, query]);
+  }, [states, query, level]);
 
   useEffect(() => {
     if (!open) return;
@@ -89,6 +97,20 @@ export function StateSelector({
           <div
             className="fixed inset-x-4 top-16 bottom-16 z-50 flex flex-col border border-navy-900 bg-white sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:bottom-auto sm:mt-2 sm:w-80"
           >
+            <div className="flex border-b border-rule">
+              {(["high_school", "college"] as const).map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLevel(l)}
+                  className={`flex-1 py-2 text-[12px] font-medium uppercase tracking-wide ${
+                    level === l ? "border-b-2 border-red text-navy-900" : "text-slate hover:text-navy-900"
+                  }`}
+                >
+                  {l === "high_school" ? "High School" : "College"}
+                </button>
+              ))}
+            </div>
             <div className="border-b border-rule p-3">
               <input
                 ref={inputRef}

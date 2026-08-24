@@ -151,6 +151,7 @@ export async function seedAllStates(): Promise<string> {
       eligibility_contact_name: s.eligibility_contact_name,
       eligibility_contact_phone: s.eligibility_contact_phone,
       eligibility_contact_email: s.eligibility_contact_email,
+      level: s.level ?? "high_school",
     });
 
     const urls: { url: string; label: string }[] = [

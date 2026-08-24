@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       eligibility_contact_name: body.eligibility_contact_name ?? null,
       eligibility_contact_phone: body.eligibility_contact_phone ?? null,
       eligibility_contact_email: body.eligibility_contact_email ?? null,
+      level: body.level === "college" ? "college" : "high_school",
     });
     return NextResponse.json({ state });
   }

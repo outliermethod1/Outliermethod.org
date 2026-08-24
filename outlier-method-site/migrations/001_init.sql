@@ -11,9 +11,11 @@ create table if not exists states (
   eligibility_contact_name text,
   eligibility_contact_phone text,
   eligibility_contact_email text,
+  level text not null default 'high_school', -- 'high_school' | 'college' — lets /coach and /bylaws filter the picker
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table states add column if not exists level text not null default 'high_school';
 
 -- URLs the crawler watches per state (handbook page, bulletins, board minutes, memos)
 create table if not exists watched_urls (

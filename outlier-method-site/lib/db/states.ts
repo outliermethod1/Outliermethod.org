@@ -9,16 +9,17 @@ export async function getState(stateCode: string): Promise<StateConfig | null> {
   return queryOne<StateConfig>("select * from states where state_code = $1", [stateCode.toLowerCase()]);
 }
 
-export async function upsertState(cfg: StateConfig): Promise<StateConfig> {
+export async function upsertState(cfg: Omit<StateConfig, "level"> & { level?: StateConfig["level"] }): Promise<StateConfig> {
   const row = await queryOne<StateConfig>(
-    `insert into states (state_code, state_name, association_name, eligibility_contact_name, eligibility_contact_phone, eligibility_contact_email)
-     values ($1, $2, $3, $4, $5, $6)
+    `insert into states (state_code, state_name, association_name, eligibility_contact_name, eligibility_contact_phone, eligibility_contact_email, level)
+     values ($1, $2, $3, $4, $5, $6, $7)
      on conflict (state_code) do update set
        state_name = excluded.state_name,
        association_name = excluded.association_name,
        eligibility_contact_name = excluded.eligibility_contact_name,
        eligibility_contact_phone = excluded.eligibility_contact_phone,
        eligibility_contact_email = excluded.eligibility_contact_email,
+       level = excluded.level,
        updated_at = now()
      returning *`,
     [
@@ -28,6 +29,7 @@ export async function upsertState(cfg: StateConfig): Promise<StateConfig> {
       cfg.eligibility_contact_name,
       cfg.eligibility_contact_phone,
       cfg.eligibility_contact_email,
+      cfg.level ?? "high_school",
     ]
   );
   if (!row) throw new Error("Failed to upsert state");

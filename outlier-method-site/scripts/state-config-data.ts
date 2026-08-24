@@ -26,6 +26,7 @@ export interface StateConfigResearch {
   association_name: string;
   handbook_url: string;
   bulletins_url: string | null;
+  level?: "high_school" | "college"; // defaults to high_school when omitted
   eligibility_contact_name: string | null;
   eligibility_contact_phone: string | null;
   eligibility_contact_email: string | null;
@@ -589,6 +590,7 @@ export const STATE_CONFIG_DATA: StateConfigResearch[] = [
   // free-text key, nothing here enforces a 2-letter US state format.
   {
     state_code: "ncaa-d1",
+    level: "college",
     state_name: "NCAA Division I",
     association_name: "National Collegiate Athletic Association (NCAA) — Division I",
     handbook_url: "https://ncaapublications.com/products/2025-2026-ncaa-division-i-manual",
@@ -600,6 +602,7 @@ export const STATE_CONFIG_DATA: StateConfigResearch[] = [
   },
   {
     state_code: "ncaa-d2",
+    level: "college",
     state_name: "NCAA Division II",
     association_name: "National Collegiate Athletic Association (NCAA) — Division II",
     handbook_url: "https://ncaapublications.com/products/2025-2026-ncaa-division-ii-manual",
@@ -611,6 +614,7 @@ export const STATE_CONFIG_DATA: StateConfigResearch[] = [
   },
   {
     state_code: "ncaa-d3",
+    level: "college",
     state_name: "NCAA Division III",
     association_name: "National Collegiate Athletic Association (NCAA) — Division III",
     handbook_url: "https://ncaapublications.com/products/2025-2026-ncaa-division-iii-manual",
@@ -622,6 +626,7 @@ export const STATE_CONFIG_DATA: StateConfigResearch[] = [
   },
   {
     state_code: "naia",
+    level: "college",
     state_name: "NAIA",
     association_name: "National Association of Intercollegiate Athletics (NAIA)",
     handbook_url: "https://www.naia.org/wp-content/uploads/2026/06/2025_Official_Handbook.pdf",
@@ -633,6 +638,7 @@ export const STATE_CONFIG_DATA: StateConfigResearch[] = [
   },
   {
     state_code: "njcaa",
+    level: "college",
     state_name: "NJCAA",
     association_name: "National Junior College Athletic Association (NJCAA)",
     handbook_url: "https://www.njcaa.org/member_colleges/handbook",

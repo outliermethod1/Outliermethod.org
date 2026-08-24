@@ -15,6 +15,8 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
+export type GoverningLevel = "high_school" | "college";
+
 export interface StateConfig {
   state_code: string;
   state_name: string;
@@ -22,6 +24,7 @@ export interface StateConfig {
   eligibility_contact_name: string | null;
   eligibility_contact_phone: string | null;
   eligibility_contact_email: string | null;
+  level: GoverningLevel;
 }
 
 export interface BylawChunk {
