@@ -340,9 +340,6 @@ export function CoachApp() {
             &#9776;
           </button>
         )}
-        <div className="shrink-0">
-          <PortraitAvatar phase={phase} size={40} />
-        </div>
         <p className="hidden shrink-0 whitespace-nowrap font-serif text-sm font-semibold text-bone lg:inline">
           Coach Eli Govern
         </p>
@@ -431,7 +428,11 @@ export function CoachApp() {
             }}
             className="border-t border-rule bg-white p-4"
           >
-            <div className="mx-auto flex max-w-3xl gap-2">
+            <div className="mx-auto flex max-w-3xl items-end gap-3">
+              <div className="hidden shrink-0 sm:block">
+                <PortraitAvatar phase={phase} size={56} />
+              </div>
+              <div className="flex flex-1 gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -478,6 +479,7 @@ export function CoachApp() {
               >
                 Send
               </button>
+              </div>
             </div>
             {hasAccount === false && remainingFree !== null && !showGate && (
               <p className="mx-auto mt-2 max-w-3xl text-[12px] text-slate">

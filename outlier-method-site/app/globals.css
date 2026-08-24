@@ -43,3 +43,28 @@
     linear-gradient(90deg, rgba(247, 245, 241, 0.05) 1px, transparent 1px);
   background-size: 44px 44px;
 }
+
+/* Coach Eli's small figure next to the chat — subtle per-phase motion,
+   not cartoon bouncing. */
+@keyframes eli-idle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes eli-bounce-anim {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-7px) scale(1.03); }
+}
+@keyframes eli-talk-anim {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-2px); }
+  75% { transform: translateY(1px); }
+}
+.eli-idle {
+  animation: eli-idle-float 3.2s ease-in-out infinite;
+}
+.eli-bounce {
+  animation: eli-bounce-anim 0.7s ease-in-out infinite;
+}
+.eli-talk {
+  animation: eli-talk-anim 0.5s ease-in-out infinite;
+}
