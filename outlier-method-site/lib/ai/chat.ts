@@ -5,7 +5,7 @@ import { getState } from "../db/states";
 import { searchSchools } from "../db/schools";
 import type { BylawChunk } from "../db/types";
 
-const MODEL = "claude-sonnet-4-5-20250929";
+const MODEL = "claude-sonnet-5";
 const MAX_TOOL_HOPS = 4;
 
 export interface ChatTurn {
@@ -23,7 +23,7 @@ export interface StreamResult {
 // the same turn, so the client tool-hop loop below never has to handle it
 // (only lookup_school, a client-side tool, produces stop_reason "tool_use").
 const WEB_SEARCH_TOOL = {
-  type: "web_search_20250305",
+  type: "web_search_20260209", // dynamic-filtering variant — Sonnet 5 supports it
   name: "web_search",
   max_uses: 3,
 } as unknown as Anthropic.Tool;
