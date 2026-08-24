@@ -276,7 +276,11 @@ export function CoachApp() {
             prev.map((m) => (m.id === assistantId ? { ...m, content: assistantText } : m))
           );
         } else if (eventName === "done") {
-          setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, mode: data.mode } : m)));
+          const realId: string = data.messageId ?? assistantId;
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantId ? { ...m, id: realId, mode: data.mode } : m))
+          );
+          assistantId = realId;
           if (hasAccount) {
             authFetch(`/api/conversations?state=${stateCode}`)
               .then((r) => (r.ok ? r.json() : { conversations: [] }))

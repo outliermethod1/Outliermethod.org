@@ -102,3 +102,26 @@ export async function logChatChunks(messageId: string, chunkIds: string[]): Prom
     chunkIds,
   ]);
 }
+
+export async function getMessageById(id: string): Promise<Message | null> {
+  return queryOne<Message>(`select * from messages where id = $1`, [id]);
+}
+
+/** The user question immediately preceding a given assistant message, for audit-trail display. */
+export async function getPrecedingUserMessage(assistantMessage: Message): Promise<Message | null> {
+  return queryOne<Message>(
+    `select * from messages
+     where conversation_id = $1 and role = 'user' and created_at <= $2
+     order by created_at desc
+     limit 1`,
+    [assistantMessage.conversation_id, assistantMessage.created_at]
+  );
+}
+
+export async function getCitedChunkIds(messageId: string): Promise<string[]> {
+  const row = await queryOne<{ retrieved_chunk_ids: string[] }>(
+    `select retrieved_chunk_ids from chat_logs where message_id = $1`,
+    [messageId]
+  );
+  return row?.retrieved_chunk_ids ?? [];
+}

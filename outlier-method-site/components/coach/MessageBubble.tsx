@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
+import Link from "next/link";
 import { CitationChip } from "./CitationChip";
 import { DisclaimerBlock } from "./DisclaimerBlock";
 import type { StateOption } from "@/lib/states-client";
@@ -49,13 +50,25 @@ export function MessageBubble({
       >
         <div className="whitespace-pre-wrap">{parts}</div>
         {!isUser && message.mode === "A" && <DisclaimerBlock state={state} />}
-        {!isUser && onListen && message.content && !isStreaming && (
-          <button
-            onClick={() => onListen(message)}
-            className="mt-2 flex items-center gap-1 text-[12px] text-navy-700 hover:text-red"
-          >
-            {isSpeaking ? "◼ Stop" : "🔊 Listen"}
-          </button>
+        {!isUser && message.content && !isStreaming && !message.id.startsWith("local-") && (
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            {onListen && (
+              <button
+                onClick={() => onListen(message)}
+                className="flex items-center gap-1 text-[12px] text-navy-700 hover:text-red"
+              >
+                {isSpeaking ? "◼ Stop" : "🔊 Listen"}
+              </button>
+            )}
+            <Link
+              href={`/coach/audit/${message.id}`}
+              target="_blank"
+              className="flex items-center gap-1 text-[12px] text-slate hover:text-navy-900"
+              title="Permanent, timestamped record of this exchange"
+            >
+              🔒 Permanent record
+            </Link>
+          </div>
         )}
       </div>
     </div>

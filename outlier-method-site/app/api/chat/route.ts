@@ -142,6 +142,7 @@ export async function POST(req: NextRequest) {
           encoder.encode(
             `event: done\ndata: ${JSON.stringify({
               mode,
+              messageId: assistantMessage.id,
               citedChunkIds: citedIds,
               retrievedChunkIds: retrievedChunks.map((c) => c.id),
             })}\n\n`
