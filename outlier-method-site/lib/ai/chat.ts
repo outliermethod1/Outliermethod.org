@@ -18,7 +18,18 @@ export interface StreamResult {
   retrievedChunks: BylawChunk[];
 }
 
+// Anthropic's server-executed web search tool — Claude decides when to call
+// it and Anthropic runs the actual search; results stream back as part of
+// the same turn, so the client tool-hop loop below never has to handle it
+// (only lookup_school, a client-side tool, produces stop_reason "tool_use").
+const WEB_SEARCH_TOOL = {
+  type: "web_search_20250305",
+  name: "web_search",
+  max_uses: 3,
+} as unknown as Anthropic.Tool;
+
 const TOOLS: Anthropic.Tool[] = [
+  WEB_SEARCH_TOOL,
   {
     name: "lookup_school",
     description:
