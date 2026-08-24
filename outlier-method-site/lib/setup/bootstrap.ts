@@ -9,6 +9,8 @@ import { embedTexts, embeddingsAvailable } from "../ai/embeddings";
 import { categorize } from "../ingest/categorize";
 import { ingestPdf } from "../ingest/ingest";
 import { STATE_CONFIG_DATA } from "../../scripts/state-config-data";
+import { FORM_TEMPLATES_DATA } from "../../scripts/form-templates-data";
+import { listFormTemplates, createFormTemplate } from "../db/forms";
 
 export async function runMigration(): Promise<string> {
   const sql = fs.readFileSync(path.join(process.cwd(), "migrations/001_init.sql"), "utf-8");
@@ -235,4 +237,19 @@ export async function ingestRealHandbook(stateCode: string): Promise<HandbookIng
     status: "ingested",
     detail: `Ingested ${result.chunkCount} sections from ${entry.handbook_url}. Effective date set to today — correct it via a fresh upload with the handbook's real effective date once known.`,
   };
+}
+
+/** Idempotent: skips a template if one with the same title+level already exists. */
+export async function seedFormTemplates(): Promise<string> {
+  const existing = await listFormTemplates();
+  const existingKey = new Set(existing.map((t) => `${t.level}:${t.title}`));
+
+  let count = 0;
+  for (const t of FORM_TEMPLATES_DATA) {
+    const key = `${t.level}:${t.title}`;
+    if (existingKey.has(key)) continue;
+    await createFormTemplate(t);
+    count++;
+  }
+  return `Added ${count} new form templates (${FORM_TEMPLATES_DATA.length} total in the starter set).`;
 }

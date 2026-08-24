@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAdminPassword } from "@/lib/auth";
-import { runMigration, seedColoradoDemo, seedAllStates } from "@/lib/setup/bootstrap";
+import { runMigration, seedColoradoDemo, seedAllStates, seedFormTemplates } from "@/lib/setup/bootstrap";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     results.migration = await runMigration();
     results.coloradoDemo = await seedColoradoDemo();
     results.allStates = await seedAllStates();
+    results.formTemplates = await seedFormTemplates();
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Unknown error", partialResults: results },

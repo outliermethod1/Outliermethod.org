@@ -14,6 +14,7 @@ interface Profile {
   school: string | null;
   state_code: string | null;
   avatar_url: string | null;
+  signature: string | null;
 }
 
 function ProfileForm() {
@@ -25,6 +26,7 @@ function ProfileForm() {
   const [name, setName] = useState("");
   const [school, setSchool] = useState("");
   const [stateCode, setStateCode] = useState("");
+  const [signature, setSignature] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -41,6 +43,7 @@ function ProfileForm() {
         setName(d.user.name ?? "");
         setSchool(d.user.school ?? "");
         setStateCode(d.user.state_code ?? "");
+        setSignature(d.user.signature ?? "");
       })
       .catch(() => {
         clearUserToken();
@@ -58,12 +61,13 @@ function ProfileForm() {
     const res = await authFetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, school, stateCode }),
+      body: JSON.stringify({ name, school, stateCode, signature }),
     });
     const data = await res.json();
     setBusy(false);
     if (res.ok) {
       setProfile(data.user);
+      setSignature(data.user.signature ?? "");
       if (next) {
         router.push(next);
         return;
@@ -182,6 +186,20 @@ function ProfileForm() {
                 disabled
                 className="mt-1 block w-full border border-rule bg-bone px-3 py-2 text-[14px] text-slate"
               />
+            </label>
+            <label className="block text-[13px] text-slate">
+              Email signature
+              <textarea
+                value={signature}
+                onChange={(e) => setSignature(e.target.value)}
+                rows={4}
+                placeholder={"Jordan Ellis\nAthletic Director, Example High School\n(555) 123-4567"}
+                className="mt-1 block w-full border border-rule px-3 py-2 font-mono text-[13px] focus:border-navy-900 focus:outline-none"
+              />
+              <span className="mt-1 block text-[12px] text-slate/80">
+                How you sign off on emails. When you ask Eli to draft one, he&rsquo;ll sign it with this
+                automatically.
+              </span>
             </label>
             {status && <p className="text-[13px] text-navy-900">{status}</p>}
             <button

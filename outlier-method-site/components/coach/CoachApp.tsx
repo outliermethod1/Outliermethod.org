@@ -189,6 +189,9 @@ export function CoachApp() {
           <StateSelector states={states} value={stateCode} onChange={setStateCode} theme="dark" />
         </div>
         <div className="hidden shrink-0 items-center gap-4 sm:flex">
+          <Link href="/forms" className="text-[13px] text-bone/70 hover:text-bone">
+            Forms
+          </Link>
           <Link href="/bylaws" className="text-[13px] text-bone/70 hover:text-bone">
             Bylaw Library
           </Link>

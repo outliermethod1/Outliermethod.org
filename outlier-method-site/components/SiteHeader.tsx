@@ -31,6 +31,9 @@ export function SiteHeader() {
           <Link href="/bylaws" className="hidden sm:inline hover:text-navy-700">
             Bylaw Library
           </Link>
+          <Link href="/forms" className="hidden sm:inline hover:text-navy-700">
+            Forms
+          </Link>
           {loggedIn ? (
             <Link href="/profile" className="hidden sm:inline hover:text-navy-700">
               Profile

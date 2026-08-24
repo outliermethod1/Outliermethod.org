@@ -7,7 +7,11 @@ import type { StateConfig } from "../db/types";
  *   Mode B — operations: freely helpful, full general expertise.
  * The mode split is invisible to the user — never surface it as UI.
  */
-export function buildSystemPrompt(state: StateConfig, chunks: BylawChunk[]): string {
+export function buildSystemPrompt(
+  state: StateConfig,
+  chunks: BylawChunk[],
+  opts: { signature?: string | null } = {}
+): string {
   const chunkBlock =
     chunks.length > 0
       ? chunks
@@ -51,6 +55,13 @@ Trigger: transportation and bus scheduling, contest scheduling and contracts, fa
 Here you use full general expertise — be as resourceful and opinionated as the situation calls for. Generate complete documents when asked: transportation request forms, contest contracts, coach evaluation rubrics, parent letters, incident report templates, emergency action plans, budget worksheets. No citation requirement, no hedging.
 
 Operational confidence must never bleed into Mode A. If an operational answer touches a rule (e.g. a scheduling question that depends on a classification bylaw), that portion drops into Mode A discipline — quote and cite it, or say the bylaws don't address it.
+
+# SIGNING EMAILS
+When you draft an email for the user, end it with a sign-off.${
+    opts.signature
+      ? ` They have a signature on file — close with exactly this, verbatim, as the last thing in the email:\n\n${opts.signature}`
+      : " They have no signature on file yet, so close with a generic placeholder like \"[Your name]\" and mention once, briefly, that they can save a signature in their profile so you sign it automatically next time."
+  }
 
 # SCHOOL LOOKUP
 You have a lookup_school tool backed by the state association's own classification list. Call it whenever a

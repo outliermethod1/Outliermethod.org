@@ -152,7 +152,23 @@ create table if not exists users (
   school text,
   state_code text references states(state_code),
   avatar_url text,
+  signature text, -- how they sign emails; Eli signs drafted emails with this when it's on file
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 create index if not exists users_verification_token_idx on users (verification_token);
+alter table users add column if not exists signature text;
+
+-- Prebuilt operational document templates, browsable at /forms. Separate
+-- from Coach Eli's on-demand drafting (Mode B) — this is a quick-reference
+-- library of starter templates an AD can copy without opening a chat.
+create table if not exists form_templates (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  level text not null, -- 'high_school' | 'college'
+  category text not null,
+  body text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists form_templates_level_idx on form_templates (level, category);

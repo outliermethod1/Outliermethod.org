@@ -85,7 +85,10 @@ export function ConversationRail({
           </button>
         </div>
         {body}
-        <div className="flex items-center gap-4 border-t border-navy-700 p-4 sm:hidden">
+        <div className="flex flex-wrap items-center gap-4 border-t border-navy-700 p-4 sm:hidden">
+          <Link href="/forms" className="text-[13px] text-bone/70 hover:text-bone">
+            Forms
+          </Link>
           <Link href="/bylaws" className="text-[13px] text-bone/70 hover:text-bone">
             Bylaw Library
           </Link>

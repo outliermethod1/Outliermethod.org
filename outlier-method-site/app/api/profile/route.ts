@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/current-user";
 import { deleteUser, updateProfile } from "@/lib/db/users";
-import { USER_COOKIE_NAME } from "@/lib/user-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -16,10 +15,11 @@ export async function PUT(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, school, stateCode } = (await req.json()) as {
+  const { name, school, stateCode, signature } = (await req.json()) as {
     name?: string;
     school?: string;
     stateCode?: string;
+    signature?: string;
   };
   if (name !== undefined && !name.trim()) {
     return NextResponse.json({ error: "Name can't be blank." }, { status: 400 });
@@ -29,6 +29,7 @@ export async function PUT(req: NextRequest) {
     name: name?.trim(),
     school: school?.trim(),
     state_code: stateCode || null,
+    signature,
   });
   const { password_hash, verification_token, ...safe } = updated!;
   return NextResponse.json({ user: safe });
@@ -39,7 +40,5 @@ export async function DELETE() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   await deleteUser(user.id);
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set(USER_COOKIE_NAME, "", { path: "/", maxAge: 0 });
-  return res;
+  return NextResponse.json({ ok: true });
 }

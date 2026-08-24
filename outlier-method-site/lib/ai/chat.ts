@@ -57,7 +57,11 @@ async function executeTool(name: string, input: Record<string, unknown>, stateCo
   return { error: `Unknown tool: ${name}` };
 }
 
-export async function runCoachEli(stateCode: string, history: ChatTurn[]): Promise<StreamResult> {
+export async function runCoachEli(
+  stateCode: string,
+  history: ChatTurn[],
+  opts: { signature?: string | null } = {}
+): Promise<StreamResult> {
   const state = await getState(stateCode);
   if (!state) {
     throw new Error(`Unknown state: ${stateCode}`);
@@ -66,7 +70,7 @@ export async function runCoachEli(stateCode: string, history: ChatTurn[]): Promi
   const lastUserMessage = [...history].reverse().find((m) => m.role === "user");
   const chunks = lastUserMessage ? await retrieveBylawChunks(stateCode, lastUserMessage.content) : [];
 
-  const system = buildSystemPrompt(state, chunks);
+  const system = buildSystemPrompt(state, chunks, { signature: opts.signature ?? null });
 
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error("ANTHROPIC_API_KEY is not set.");

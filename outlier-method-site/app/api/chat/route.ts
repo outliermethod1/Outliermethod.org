@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { runCoachEli, extractCitedChunkIds, type ChatTurn } from "@/lib/ai/chat";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getCurrentUser } from "@/lib/current-user";
 import {
   addMessage,
   createConversation,
@@ -51,7 +52,10 @@ export async function POST(req: NextRequest) {
     const priorMessages = await listMessages(conversationId);
     const history: ChatTurn[] = priorMessages.map((m) => ({ role: m.role, content: m.content }));
 
-    const result = await runCoachEli(stateCode, history);
+    // Admin sessions have no bearer token, so this is null for admin — Eli
+    // just won't have a signature to sign with, which is fine.
+    const currentUser = await getCurrentUser();
+    const result = await runCoachEli(stateCode, history, { signature: currentUser?.signature ?? null });
     stream = result.stream;
     retrievedChunks = result.retrievedChunks;
   } catch (err) {

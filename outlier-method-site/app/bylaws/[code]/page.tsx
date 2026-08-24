@@ -99,33 +99,37 @@ export default function StateBylawsPage() {
                 </p>
               )}
 
+              {chunks.length > 0 && (
+                <p className="mt-8 max-w-2xl text-[13px] text-slate">
+                  Every entry links straight to {state.association_name}&rsquo;s own published document —
+                  the authoritative copy stays with them, not a hosted duplicate here.
+                </p>
+              )}
+
               <div className="mt-10 space-y-12">
                 {Object.entries(grouped).map(([category, items]) => (
                   <section key={category}>
                     <h2 className="eyebrow border-b border-rule pb-2 text-navy-900">
                       {CATEGORY_LABELS[category as Category] ?? category}
                     </h2>
-                    <div className="mt-6 space-y-8">
+                    <div className="mt-6 divide-y divide-rule border-b border-rule">
                       {items.map((c) => (
-                        <div key={c.id} id={`chunk-${c.id}`} className="scroll-mt-24 transition-colors">
-                          <div className="flex flex-wrap items-baseline justify-between gap-2">
-                            <h3 className="font-serif text-lg font-semibold text-navy-900">
-                              {c.bylaw_id} &mdash; {c.title}
-                            </h3>
-                            <span className="text-[12px] text-slate">Effective {c.effective_date}</span>
-                          </div>
-                          <blockquote className="bylaw-quote mt-3 whitespace-pre-wrap text-ink">
-                            {c.body}
-                          </blockquote>
-                          <a
-                            href={c.source_doc}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-2 inline-block text-[12px] text-navy-700 underline"
-                          >
-                            Source PDF{c.source_page ? ` — page ${c.source_page}` : ""}
-                          </a>
-                        </div>
+                        <a
+                          key={c.id}
+                          id={`chunk-${c.id}`}
+                          href={c.source_doc}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="scroll-mt-24 flex flex-wrap items-baseline justify-between gap-2 py-4 transition-colors hover:bg-red-tint"
+                        >
+                          <h3 className="font-serif text-lg font-semibold text-navy-900">
+                            {c.bylaw_id} &mdash; {c.title}
+                            <span className="ml-2 text-[12px] font-sans font-normal text-navy-700">
+                              View source{c.source_page ? ` (p. ${c.source_page})` : ""} &rarr;
+                            </span>
+                          </h3>
+                          <span className="text-[12px] text-slate">Effective {c.effective_date}</span>
+                        </a>
                       ))}
                     </div>
                   </section>
