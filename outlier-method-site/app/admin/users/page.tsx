@@ -15,12 +15,22 @@ interface UserRow {
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  useEffect(() => {
+  function load() {
     fetch("/api/admin/users")
       .then((r) => r.json())
       .then((d) => setUsers(d.users ?? []));
-  }, []);
+  }
+
+  useEffect(load, []);
+
+  async function verifyNow(id: string) {
+    setBusyId(id);
+    await fetch(`/api/admin/users/${id}/verify`, { method: "POST" });
+    setBusyId(null);
+    load();
+  }
 
   return (
     <div className="min-h-screen bg-bone">
@@ -29,6 +39,8 @@ export default function AdminUsersPage() {
         <h1 className="font-serif text-2xl font-semibold text-navy-900">Beta testers</h1>
         <p className="mt-2 text-sm text-slate">
           Everyone who has signed up. A copy of every signup also goes to your notification email.
+          {" "}If <code className="text-[12px]">RESEND_API_KEY</code> isn&rsquo;t configured, verification emails
+          never send — use &ldquo;Verify now&rdquo; below to unblock a tester manually.
         </p>
 
         <div className="mt-8 overflow-x-auto border border-rule bg-white">
@@ -41,6 +53,7 @@ export default function AdminUsersPage() {
                 <th className="px-4 py-2 font-medium">State</th>
                 <th className="px-4 py-2 font-medium">Verified</th>
                 <th className="px-4 py-2 font-medium">Signed up</th>
+                <th className="px-4 py-2 font-medium"></th>
               </tr>
             </thead>
             <tbody>
@@ -52,11 +65,22 @@ export default function AdminUsersPage() {
                   <td className="px-4 py-2">{u.state_code?.toUpperCase() ?? "—"}</td>
                   <td className="px-4 py-2">{u.email_verified ? "Yes" : "No"}</td>
                   <td className="px-4 py-2">{new Date(u.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-2">
+                    {!u.email_verified && (
+                      <button
+                        onClick={() => verifyNow(u.id)}
+                        disabled={busyId === u.id}
+                        className="text-[12px] font-medium text-navy-900 underline hover:text-red disabled:opacity-50"
+                      >
+                        {busyId === u.id ? "Verifying…" : "Verify now"}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-slate">
+                  <td colSpan={7} className="px-4 py-6 text-center text-slate">
                     No signups yet.
                   </td>
                 </tr>
