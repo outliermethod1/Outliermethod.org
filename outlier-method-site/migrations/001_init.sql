@@ -94,6 +94,20 @@ create table if not exists crawler_alerts (
   acknowledged_at timestamptz
 );
 
+-- One-tap "report this exchange" — ships the permanent audit record
+-- straight to the admin queue instead of the user having to argue with
+-- Eli in the moment about what he said.
+create table if not exists escalations (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references messages(id) on delete cascade,
+  conversation_id uuid not null references conversations(id) on delete cascade,
+  reporter_note text,
+  status text not null default 'open', -- 'open' | 'resolved'
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz
+);
+create index if not exists escalations_status_idx on escalations (status, created_at);
+
 -- Member schools, sourced from each state association's official classification/
 -- realignment list (not MaxPreps — the association is the authority on its own
 -- classification, and there's no public MaxPreps API to pull from anyway).

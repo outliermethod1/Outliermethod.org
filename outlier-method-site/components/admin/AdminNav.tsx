@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/admin/forms", label: "Forms" },
   { href: "/admin/health", label: "Index Health" },
   { href: "/admin/users", label: "Users" },
+  { href: "/admin/escalations", label: "Escalations" },
 ];
 
 export function AdminNav() {

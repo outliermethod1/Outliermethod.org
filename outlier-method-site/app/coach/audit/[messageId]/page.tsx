@@ -28,6 +28,9 @@ export default function AuditPage() {
   const [record, setRecord] = useState<AuditRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [reportNote, setReportNote] = useState("");
+  const [reportStatus, setReportStatus] = useState<"idle" | "sent">("idle");
 
   useEffect(() => {
     authFetch(`/api/audit/${params.messageId}`)
@@ -53,6 +56,16 @@ export default function AuditPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function submitReport() {
+    await authFetch(`/api/audit/${params.messageId}/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ note: reportNote }),
+    });
+    setReportStatus("sent");
+    setReporting(false);
+  }
+
   return (
     <main className="min-h-screen bg-bone px-6 py-12">
       <div className="mx-auto max-w-3xl">
@@ -60,12 +73,47 @@ export default function AuditPage() {
           <Link href="/coach" className="text-[13px] text-slate hover:text-navy-900">
             &larr; Back to chat
           </Link>
-          {getUserToken() && (
-            <button onClick={() => window.print()} className="text-[13px] text-slate hover:text-navy-900">
-              Print / save PDF
-            </button>
-          )}
+          <div className="flex items-center gap-4 print:hidden">
+            {reportStatus === "sent" ? (
+              <span className="text-[13px] text-navy-900">Reported — thanks.</span>
+            ) : (
+              <button onClick={() => setReporting(true)} className="text-[13px] text-red hover:underline">
+                Report this exchange
+              </button>
+            )}
+            {getUserToken() && (
+              <button onClick={() => window.print()} className="text-[13px] text-slate hover:text-navy-900">
+                Print / save PDF
+              </button>
+            )}
+          </div>
         </div>
+
+        {reporting && (
+          <div className="mt-4 border border-red bg-white p-4 print:hidden">
+            <p className="text-[13px] font-medium text-navy-900">
+              What&rsquo;s wrong with this exchange? (optional, helps us look into it)
+            </p>
+            <textarea
+              value={reportNote}
+              onChange={(e) => setReportNote(e.target.value)}
+              rows={3}
+              className="mt-2 w-full border border-rule px-3 py-2 text-[14px] focus:border-navy-900 focus:outline-none"
+              placeholder="Optional details…"
+            />
+            <div className="mt-2 flex gap-3">
+              <button
+                onClick={submitReport}
+                className="border border-red bg-red px-4 py-1.5 text-[13px] font-medium text-white hover:bg-[#8c1d27]"
+              >
+                Send report
+              </button>
+              <button onClick={() => setReporting(false)} className="text-[13px] text-slate">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && <p className="mt-10 border border-red bg-white p-6 text-[14px] text-red">{error}</p>}
 
