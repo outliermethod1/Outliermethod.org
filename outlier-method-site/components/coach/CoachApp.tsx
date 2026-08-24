@@ -149,26 +149,28 @@ export function CoachApp() {
 
   return (
     <div className="flex h-screen flex-col bg-bone">
-      <div className="flex items-center justify-between border-b border-navy-700 bg-navy-900 px-4 py-3">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setRailOpen(true)}
-            className="mr-1 text-bone md:hidden"
-            aria-label="Open conversations"
-          >
-            &#9776;
-          </button>
+      <div className="flex items-center gap-3 border-b border-navy-700 bg-navy-900 px-4 py-3">
+        <button
+          onClick={() => setRailOpen(true)}
+          className="shrink-0 text-bone md:hidden"
+          aria-label="Open conversations"
+        >
+          &#9776;
+        </button>
+        <div className="shrink-0">
           <PortraitAvatar phase={phase} size={40} />
-          <div className="flex items-center gap-3">
-            <p className="font-serif text-sm font-semibold text-bone">Coach Eli Govern</p>
-            <StateSelector states={states} value={stateCode} onChange={setStateCode} theme="dark" />
-          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/bylaws" className="hidden text-[13px] text-bone/70 hover:text-bone sm:inline">
+        <p className="hidden shrink-0 whitespace-nowrap font-serif text-sm font-semibold text-bone lg:inline">
+          Coach Eli Govern
+        </p>
+        <div className="min-w-0 flex-1">
+          <StateSelector states={states} value={stateCode} onChange={setStateCode} theme="dark" />
+        </div>
+        <div className="hidden shrink-0 items-center gap-4 sm:flex">
+          <Link href="/bylaws" className="text-[13px] text-bone/70 hover:text-bone">
             Bylaw Library
           </Link>
-          <Link href="/" className="hidden text-[13px] text-bone/70 hover:text-bone sm:inline">
+          <Link href="/" className="text-[13px] text-bone/70 hover:text-bone">
             Home
           </Link>
         </div>

@@ -60,23 +60,23 @@ export function StateSelector({
     variant === "full"
       ? "w-full max-w-sm border border-navy-900 bg-white px-5 py-3 text-left text-[15px] font-medium text-navy-900 hover:border-red"
       : dark
-        ? "border border-bone/25 bg-navy-900 px-3 py-2 text-left text-[13px] font-medium text-bone hover:border-red"
-        : "border border-navy-900 bg-white px-3 py-2 text-left text-[13px] font-medium text-navy-900 hover:border-red";
+        ? "w-full min-w-0 border border-bone/25 bg-navy-900 px-3 py-2 text-left text-[13px] font-medium text-bone hover:border-red"
+        : "w-full min-w-0 border border-navy-900 bg-white px-3 py-2 text-left text-[13px] font-medium text-navy-900 hover:border-red";
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative min-w-0 max-w-full">
       <button type="button" onClick={() => setOpen((o) => !o)} className={buttonClasses}>
         {selected ? (
-          <span className="flex items-center justify-between gap-3">
-            <span className="truncate">
+          <span className="flex min-w-0 items-center justify-between gap-3">
+            <span className="min-w-0 truncate">
               {selected.association_name}
               {variant === "full" && <span className="text-slate"> &middot; {selected.state_name}</span>}
             </span>
             <span className="shrink-0 text-slate">&#9662;</span>
           </span>
         ) : (
-          <span className="flex items-center justify-between gap-3 text-slate">
-            Select your state association
+          <span className="flex min-w-0 items-center justify-between gap-3 text-slate">
+            <span className="truncate">Select your state association</span>
             <span className="shrink-0">&#9662;</span>
           </span>
         )}
