@@ -27,6 +27,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "stateCode is required" }, { status: 400 });
   }
 
-  const result = await ingestRealHandbook(stateCode);
-  return NextResponse.json(result);
+  try {
+    const result = await ingestRealHandbook(stateCode);
+    return NextResponse.json(result);
+  } catch (err) {
+    console.error(`ingest-handbook failed for ${stateCode}:`, err);
+    return NextResponse.json(
+      { state_code: stateCode, status: "fetch_failed", detail: err instanceof Error ? err.message : String(err) },
+      { status: 500 }
+    );
+  }
 }
