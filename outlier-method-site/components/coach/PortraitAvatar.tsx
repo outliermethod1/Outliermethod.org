@@ -14,7 +14,7 @@ export function PortraitAvatar({ phase, size = 64 }: { phase: PortraitPhase; siz
       }`}
       style={{ width: size, height: size }}
     >
-      <Image src="/coach-eli-govern.jpg" alt="Coach Eli Govern" fill className="object-cover" sizes={`${size}px`} />
+      <Image src="/coach-eli-avatar.jpg" alt="Coach Eli Govern" fill className="object-cover" sizes={`${size}px`} />
     </div>
   );
 }
