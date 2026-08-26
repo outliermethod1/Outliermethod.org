@@ -157,7 +157,16 @@ export async function POST(req: NextRequest) {
       try {
         for await (const delta of stream) {
           fullText += delta;
-          controller.enqueue(encoder.encode(`event: delta\ndata: ${JSON.stringify({ text: delta })}\n\n`));
+          try {
+            controller.enqueue(encoder.encode(`event: delta\ndata: ${JSON.stringify({ text: delta })}\n\n`));
+          } catch {
+            // Client disconnected — keep consuming the generation anyway so
+            // persistence and quota accounting still happen deterministically
+            // server-side. Without this, aborting mid-stream skips the
+            // increment below entirely: an unlimited-free-answers hole for a
+            // free-tier account that closes the connection right after
+            // seeing what it needed.
+          }
         }
 
         const citedIds = extractCitedChunkIds(fullText);
@@ -179,24 +188,39 @@ export async function POST(req: NextRequest) {
         }
         await touchConversation(conversationId!);
 
-        controller.enqueue(
-          encoder.encode(
-            `event: done\ndata: ${JSON.stringify({
-              mode,
-              messageId: assistantMessage.id,
-              citedChunkIds: citedIds,
-              retrievedChunkIds: retrievedChunks.map((c) => c.id),
-            })}\n\n`
-          )
-        );
+        try {
+          controller.enqueue(
+            encoder.encode(
+              `event: done\ndata: ${JSON.stringify({
+                mode,
+                messageId: assistantMessage.id,
+                citedChunkIds: citedIds,
+                retrievedChunkIds: retrievedChunks.map((c) => c.id),
+              })}\n\n`
+            )
+          );
+        } catch {
+          // Client gone — persistence above already happened, nothing left to do.
+        }
       } catch (err) {
-        controller.enqueue(
-          encoder.encode(
-            `event: error\ndata: ${JSON.stringify({ message: err instanceof Error ? err.message : "Unknown error" })}\n\n`
-          )
-        );
+        // A real failure (upstream generation threw, a DB write failed) —
+        // this path no longer fires just because the client disconnected.
+        console.error("chat stream failed:", err);
+        try {
+          controller.enqueue(
+            encoder.encode(
+              `event: error\ndata: ${JSON.stringify({ message: err instanceof Error ? err.message : "Unknown error" })}\n\n`
+            )
+          );
+        } catch {
+          // Client gone too — nothing more to do.
+        }
       } finally {
-        controller.close();
+        try {
+          controller.close();
+        } catch {
+          // Already closed/errored — fine.
+        }
       }
     },
   });
