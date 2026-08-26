@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { getUserToken } from "@/lib/auth-client";
 
 type FormLevel = "high_school" | "college";
 
@@ -12,6 +13,11 @@ interface FormTemplate {
   level: FormLevel;
   category: string;
   body: string;
+}
+
+function tokenParam(): string {
+  const token = getUserToken();
+  return token ? `&token=${encodeURIComponent(token)}` : "";
 }
 
 function TemplateCard({ t }: { t: FormTemplate }) {
@@ -36,12 +42,26 @@ function TemplateCard({ t }: { t: FormTemplate }) {
       {open && (
         <div className="border-t border-rule px-5 py-4">
           <pre className="whitespace-pre-wrap font-mono text-[13px] leading-relaxed text-ink">{t.body}</pre>
-          <button
-            onClick={copy}
-            className="mt-4 border border-navy-900 px-4 py-2 text-[13px] font-medium text-navy-900 hover:bg-navy-900 hover:text-white"
-          >
-            {copied ? "Copied" : "Copy to clipboard"}
-          </button>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              onClick={copy}
+              className="border border-navy-900 px-4 py-2 text-[13px] font-medium text-navy-900 hover:bg-navy-900 hover:text-white"
+            >
+              {copied ? "Copied" : "Copy to clipboard"}
+            </button>
+            <a
+              href={`/api/forms/${t.id}/export?format=pdf${tokenParam()}`}
+              className="border border-rule px-4 py-2 text-[13px] font-medium text-slate hover:border-navy-900 hover:text-navy-900"
+            >
+              Download PDF
+            </a>
+            <a
+              href={`/api/forms/${t.id}/export?format=docx${tokenParam()}`}
+              className="border border-rule px-4 py-2 text-[13px] font-medium text-slate hover:border-navy-900 hover:text-navy-900"
+            >
+              Download DOCX
+            </a>
+          </div>
         </div>
       )}
     </div>

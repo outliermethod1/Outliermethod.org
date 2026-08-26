@@ -380,6 +380,9 @@ export function CoachApp() {
           <Link href="/bylaws" className="text-[13px] text-bone/70 hover:text-bone">
             Bylaw Library
           </Link>
+          <Link href="/coach/compare" className="text-[13px] text-bone/70 hover:text-bone">
+            Compare States
+          </Link>
           <Link href="/" className="text-[13px] text-bone/70 hover:text-bone">
             Home
           </Link>
