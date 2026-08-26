@@ -141,7 +141,7 @@ export async function buildEligibilityMemoPdf(ctx: MemoContext): Promise<Uint8Ar
 
   draw("", { gapAfter: 6 });
   draw(
-    `Guidance based on the cited bylaw as of ${ctx.createdAt.slice(0, 10)}; not a ruling by ${ctx.state.association_name}. Not legal advice.`,
+    `Guidance based on the cited bylaw as of ${new Date(ctx.createdAt).toISOString().slice(0, 10)}; not a ruling by ${ctx.state.association_name}. Not legal advice.`,
     { size: 9, f: italic, color: [0.35, 0.4, 0.46], gapAfter: 8 }
   );
   draw(
