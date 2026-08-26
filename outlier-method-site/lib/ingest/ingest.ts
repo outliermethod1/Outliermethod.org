@@ -27,7 +27,7 @@ export async function ingestPdf(opts: {
   buffer: Buffer;
   source: "manual" | "crawler";
   watchedUrlId?: string | null;
-}): Promise<{ documentId: string; chunkCount: number }> {
+}): Promise<{ documentId: string; chunkCount: number; bylawIds: string[] }> {
   const path = blobPath(opts.stateCode, opts.effectiveDate, opts.slug);
   const contentHash = hashBuffer(opts.buffer);
 
@@ -71,5 +71,5 @@ export async function ingestPdf(opts: {
     chunkCount++;
   }
 
-  return { documentId: document.id, chunkCount };
+  return { documentId: document.id, chunkCount, bylawIds: sections.map((s) => s.bylaw_id) };
 }

@@ -12,6 +12,7 @@ function SignupForm() {
   const params = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [foundingCode, setFoundingCode] = useState(params.get("code") ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -22,7 +23,7 @@ function SignupForm() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, foundingCode: foundingCode || undefined }),
     });
     const data = await res.json();
     setBusy(false);
@@ -52,7 +53,10 @@ function SignupForm() {
     <div className="w-full max-w-sm">
       <p className="eyebrow text-red">Beta access</p>
       <h1 className="mt-3 font-serif text-3xl font-semibold text-navy-900">Create your account</h1>
-      <p className="mt-3 text-[14px] text-slate">Free, unlimited questions, saved conversations, PDF export.</p>
+      <p className="mt-3 text-[14px] text-slate">
+        Free — 5 cited eligibility answers a month, plus unlimited operational help, saved conversations,
+        and PDF export.
+      </p>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
         <label className="block text-[13px] text-slate">
@@ -74,6 +78,15 @@ function SignupForm() {
             minLength={8}
             className="mt-1 block w-full border border-rule bg-white px-3 py-2 text-[14px] focus:border-navy-900 focus:outline-none"
             required
+          />
+        </label>
+        <label className="block text-[13px] text-slate">
+          Founding-member code (optional)
+          <input
+            value={foundingCode}
+            onChange={(e) => setFoundingCode(e.target.value)}
+            placeholder="Leave blank unless you have one"
+            className="mt-1 block w-full border border-rule bg-white px-3 py-2 text-[14px] focus:border-navy-900 focus:outline-none"
           />
         </label>
         {error && <p className="text-[13px] text-red">{error}</p>}

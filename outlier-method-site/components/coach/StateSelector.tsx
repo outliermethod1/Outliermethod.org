@@ -133,7 +133,14 @@ export function StateSelector({
                     s.state_code === value ? "bg-red-tint font-medium text-navy-900" : "text-ink"
                   }`}
                 >
-                  <span className="block font-serif text-[15px] font-medium text-navy-900">{s.state_name}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-serif text-[15px] font-medium text-navy-900">{s.state_name}</span>
+                    {s.covered === false && (
+                      <span className="border border-rule px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-slate">
+                        Bylaws not indexed yet
+                      </span>
+                    )}
+                  </span>
                   <span className="block text-[12px] text-slate">{s.association_name}</span>
                 </button>
               ))}

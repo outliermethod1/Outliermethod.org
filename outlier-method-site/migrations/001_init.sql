@@ -146,6 +146,13 @@ create table if not exists users (
   reset_token text,
   reset_expires timestamptz,
   voice_enabled boolean not null default false, -- premium toggle: read Eli's answers aloud via ElevenLabs
+  stripe_customer_id text,
+  subscription_status text not null default 'free', -- 'free' | 'active' | 'past_due' | 'canceled'
+  subscription_tier text, -- 'ad' | 'district', null while free
+  is_founding_member boolean not null default false,
+  founding_code_used text,
+  cited_answer_count int not null default 0, -- resets monthly; free-tier quota (Mode A answers only)
+  cited_answer_count_reset_at timestamptz not null default now(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -153,8 +160,16 @@ alter table users add column if not exists signature text;
 alter table users add column if not exists reset_token text;
 alter table users add column if not exists reset_expires timestamptz;
 alter table users add column if not exists voice_enabled boolean not null default false;
+alter table users add column if not exists stripe_customer_id text;
+alter table users add column if not exists subscription_status text not null default 'free';
+alter table users add column if not exists subscription_tier text;
+alter table users add column if not exists is_founding_member boolean not null default false;
+alter table users add column if not exists founding_code_used text;
+alter table users add column if not exists cited_answer_count int not null default 0;
+alter table users add column if not exists cited_answer_count_reset_at timestamptz not null default now();
 create index if not exists users_verification_token_idx on users (verification_token);
 create index if not exists users_reset_token_idx on users (reset_token);
+create index if not exists users_stripe_customer_id_idx on users (stripe_customer_id);
 
 -- Anonymous visitor sessions — lets someone use Coach Eli for a handful of
 -- free questions before an account exists. id is the value carried in the
@@ -261,4 +276,58 @@ create table if not exists user_deadlines (
   source_message_id uuid references messages(id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+-- District/PO buyers: public schools mostly can't pay by card. This is the
+-- "request an invoice" path — lands in the admin queue for Ryan to invoice
+-- net-30 by hand rather than trying to automate purchase-order procurement.
+create table if not exists invoice_requests (
+  id uuid primary key default gen_random_uuid(),
+  school_or_district text not null,
+  contact_name text not null,
+  contact_email text not null,
+  tier text not null, -- 'ad' | 'district'
+  school_count int,
+  note text,
+  status text not null default 'open', -- 'open' | 'invoiced' | 'paid' | 'closed'
+  created_at timestamptz not null default now()
+);
+create index if not exists invoice_requests_status_idx on invoice_requests (status, created_at);
+
+-- Founding-cohort signup codes (20 ADs, free for a year) — tracked
+-- separately from paid usage so Ryan can see cohort activity distinctly.
+create table if not exists founding_codes (
+  code text primary key,
+  max_uses int not null default 1,
+  used_count int not null default 0,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+-- Waitlist capture — a state/topic not covered yet, or "notify me when
+-- [state] amends this rule." Doubles as the roadmap: build what people
+-- actually ask for.
+create table if not exists waitlist_signups (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  state_code text,
+  bylaw_id text, -- set for a specific "notify me on amendment" signup
+  kind text not null default 'state_coverage', -- 'state_coverage' | 'bylaw_amendment'
+  notified_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists waitlist_signups_state_idx on waitlist_signups (state_code, bylaw_id);
+
+-- Which bylaws a user has actually been cited on — powers amendment alerts.
+-- Auto-recorded whenever a Mode A answer cites a bylaw for a logged-in user;
+-- when that bylaw is later superseded (admin approves an amendment), every
+-- watcher gets notified instead of finding out the hard way next season.
+create table if not exists bylaw_watches (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  state_code text not null references states(state_code) on delete cascade,
+  bylaw_id text not null,
+  created_at timestamptz not null default now(),
+  unique (user_id, state_code, bylaw_id)
+);
+create index if not exists bylaw_watches_lookup_idx on bylaw_watches (state_code, bylaw_id);
 create index if not exists user_deadlines_user_idx on user_deadlines (user_id, due_date);

@@ -14,6 +14,10 @@ import { resolveIdentity, ownsConversation } from "@/lib/request-identity";
 import { generateAnonId, signAnonId, ANON_COOKIE_NAME } from "@/lib/anon-session";
 import { getOrCreateAnonSession, getIpUsageCount, incrementAnonExchange } from "@/lib/db/anon-sessions";
 import { effectiveExchangeCount, remainingFreeQuestions, hashIp, FREE_QUESTION_LIMIT } from "@/lib/anon-quota";
+import { incrementCitedAnswerCount, isPaidOrFounding } from "@/lib/db/users";
+import { recordBylawWatch } from "@/lib/db/business";
+import { getChunksByIds } from "@/lib/db/chunks";
+import { FREE_TIER_CITED_ANSWER_LIMIT } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,9 +57,13 @@ export async function POST(req: NextRequest) {
   let anonId: string | null = null;
   let newAnonCookie: string | null = null;
   let remaining: number | null = null;
+  let trackFreeUsageForUserId: string | null = null;
+  let watchUserId: string | null = null;
   try {
     const identity = await resolveIdentity(req);
     const isAuthed = identity.isAdmin || !!identity.userId;
+    const currentUser = identity.userId ? await getCurrentUser() : null;
+    watchUserId = identity.userId ?? null;
 
     // Anonymous visitor: gate on the free-question quota before doing any
     // real work. The cookie's session id is authoritative; the per-IP count
@@ -79,6 +87,26 @@ export async function POST(req: NextRequest) {
 
       const newCount = await incrementAnonExchange(anonId, ipHash);
       remaining = remainingFreeQuestions(newCount, ipUsageCount);
+    } else if (identity.userId) {
+      // Logged-in free tier: gated on volume of cited (Mode A) answers per
+      // month, never on quality. Paid/founding/admin accounts are unlimited.
+      if (currentUser && !isPaidOrFounding(currentUser)) {
+        trackFreeUsageForUserId = currentUser.id;
+        const alreadyReset =
+          new Date(currentUser.cited_answer_count_reset_at).getTime() < Date.now() - 30 * 24 * 60 * 60 * 1000;
+        const effectiveCount = alreadyReset ? 0 : currentUser.cited_answer_count;
+        if (effectiveCount >= FREE_TIER_CITED_ANSWER_LIMIT) {
+          return jsonResponse(
+            {
+              error: "free_limit_reached",
+              scope: "account",
+              remaining: 0,
+              limit: FREE_TIER_CITED_ANSWER_LIMIT,
+            },
+            403
+          );
+        }
+      }
     }
 
     if (conversationId) {
@@ -99,9 +127,8 @@ export async function POST(req: NextRequest) {
     const priorMessages = await listMessages(conversationId);
     const history: ChatTurn[] = priorMessages.map((m) => ({ role: m.role, content: m.content }));
 
-    // Admin sessions and anonymous visitors have no bearer token, so this is
-    // null for them — Eli just won't have a signature to sign with.
-    const currentUser = identity.userId ? await getCurrentUser() : null;
+    // currentUser is null for admin sessions and anonymous visitors (no
+    // bearer token) — Eli just won't have a signature to sign with for them.
     const result = await runCoachEli(stateCode, history, {
       signature: currentUser?.signature ?? null,
       userId: identity.userId,
@@ -138,6 +165,17 @@ export async function POST(req: NextRequest) {
         const assistantMessage = await addMessage(conversationId!, "assistant", fullText, mode);
         if (citedIds.length > 0) {
           await logChatChunks(assistantMessage.id, citedIds);
+
+          // Free-tier volume metering: only cited (Mode A) answers count.
+          if (trackFreeUsageForUserId) {
+            await incrementCitedAnswerCount(trackFreeUsageForUserId);
+          }
+          // Amendment-alert enrollment: watch every bylaw this account was
+          // just cited on, so a future supersession notifies them.
+          if (watchUserId) {
+            const citedChunks = await getChunksByIds(citedIds);
+            await Promise.all(citedChunks.map((c) => recordBylawWatch(watchUserId!, c.state_code, c.bylaw_id)));
+          }
         }
         await touchConversation(conversationId!);
 

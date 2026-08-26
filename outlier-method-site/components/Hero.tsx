@@ -19,10 +19,13 @@ export function Hero() {
         <div>
           <p className="eyebrow text-[#E8A2A9]">Outlier Method</p>
           <h1 className="mt-3 font-serif text-4xl font-semibold leading-tight text-bone sm:text-5xl">
-            AD Chief of Staff
+            The rule that&rsquo;s in force today &mdash; with proof.
           </h1>
           <p className="mt-5 max-w-xl text-lg text-bone/75">
-            Meet Coach Eli Govern &mdash; thirty years in the chair, and every bylaw in your state, on call.
+            Every answer is dated, cited, and exportable. Superseded bylaw text is never shown here as
+            current &mdash; so when a call is questioned six months from now, you have exactly what you
+            relied on and when you checked it. That&rsquo;s AD Chief of Staff, built by Coach Eli Govern:
+            thirty years in the chair, every bylaw in your state, on call.
           </p>
           <div className="mt-8">
             <Link
@@ -32,7 +35,7 @@ export function Hero() {
               Ask Coach Eli
             </Link>
             <p className="mt-3 text-sm text-bone/60">
-              Grounded in your state association&rsquo;s bylaws. Every answer cited.
+              Free to start &mdash; no card required. Every answer cited, dated, and ready to export.
             </p>
           </div>
         </div>

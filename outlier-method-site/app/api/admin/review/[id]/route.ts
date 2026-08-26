@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getReviewItem, setReviewStatus } from "@/lib/db/review-queue";
 import { ingestPdf } from "@/lib/ingest/ingest";
+import { notifyBylawWatchers } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   });
 
   await setReviewStatus(params.id, "approved", finalEffectiveDate);
+
+  // Amendment alerts: notify everyone watching a bylaw this ingestion just
+  // superseded. Best-effort — a failed notification never blocks approval.
+  notifyBylawWatchers(item.state_code, result.bylawIds, finalEffectiveDate).catch((err) =>
+    console.error("Amendment notification failed:", err)
+  );
 
   return NextResponse.json({ ok: true, ...result });
 }

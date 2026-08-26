@@ -10,6 +10,7 @@ import { SourcePanel } from "./SourcePanel";
 import { StarterPrompts } from "./StarterPrompts";
 import { ConversationRail } from "./ConversationRail";
 import { FreeQuestionGate } from "./FreeQuestionGate";
+import { UpgradeGate } from "./UpgradeGate";
 import type { StateOption } from "@/lib/states-client";
 import { authFetch, getUserToken } from "@/lib/auth-client";
 import { fetchSpeech, getSpeechRecognitionCtor } from "@/lib/voice-client";
@@ -42,6 +43,8 @@ export function CoachApp() {
   const [hasAccount, setHasAccount] = useState<boolean | null>(null);
   const [remainingFree, setRemainingFree] = useState<number | null>(null);
   const [showGate, setShowGate] = useState(false);
+  const [gateScope, setGateScope] = useState<"anon" | "account">("anon");
+  const [gateLimit, setGateLimit] = useState(5);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   // Mirrors voiceMode for the async audio.onended callback below, which
@@ -70,8 +73,13 @@ export function CoachApp() {
       .then((r) => (r.ok ? r.json() : { states: [] }))
       .then((d) => setStates(d.states ?? []))
       .catch(() => setStates([]));
+    // A bylaw-library page can deep-link here with ?state=co&ask=Follow-up...
+    const stateFromLink = params.get("state");
     const saved = typeof window !== "undefined" ? window.localStorage.getItem(STATE_STORAGE_KEY) : null;
-    if (saved) setStateCode(saved);
+    if (stateFromLink) setStateCode(stateFromLink);
+    else if (saved) setStateCode(saved);
+    const askFromLink = params.get("ask");
+    if (askFromLink) setInput(askFromLink);
 
     if (getUserToken()) {
       authFetch("/api/profile")
@@ -233,6 +241,8 @@ export function CoachApp() {
       const data = await res.json().catch(() => null);
       if (data?.error === "free_limit_reached") {
         setRemainingFree(0);
+        setGateScope(data.scope === "account" ? "account" : "anon");
+        if (data.limit) setGateLimit(data.limit);
         setShowGate(true);
         setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
         setPhase("idle");
@@ -420,10 +430,11 @@ export function CoachApp() {
             ))}
             {showGate && (
               <div className="mx-auto max-w-2xl">
-                <FreeQuestionGate
-                  onSignup={() => goToAuth("signup")}
-                  onLogin={() => goToAuth("login")}
-                />
+                {gateScope === "account" ? (
+                  <UpgradeGate limit={gateLimit} />
+                ) : (
+                  <FreeQuestionGate onSignup={() => goToAuth("signup")} onLogin={() => goToAuth("login")} />
+                )}
               </div>
             )}
           </div>
@@ -443,7 +454,15 @@ export function CoachApp() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={listening ? "Listening…" : showGate ? "Create a free account to keep going" : "Ask Coach Eli anything..."}
+                placeholder={
+                  listening
+                    ? "Listening…"
+                    : showGate
+                      ? gateScope === "account"
+                        ? "Upgrade to keep asking eligibility questions"
+                        : "Create a free account to keep going"
+                      : "Ask Coach Eli anything..."
+                }
                 disabled={showGate}
                 className="flex-1 border border-rule px-3 py-2 text-[15px] focus:border-navy-900 focus:outline-none disabled:bg-bone disabled:text-slate"
               />

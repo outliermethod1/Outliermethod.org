@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { CitationChip } from "./CitationChip";
 import { DisclaimerBlock } from "./DisclaimerBlock";
+import { getUserToken } from "@/lib/auth-client";
 import type { StateOption } from "@/lib/states-client";
 
 interface ContactInfo {
@@ -68,6 +69,18 @@ export function MessageBubble({
             >
               🔒 Permanent record
             </Link>
+            {message.mode === "A" && (
+              <a
+                href={`/api/audit/${message.id}/memo${
+                  getUserToken() ? `?token=${encodeURIComponent(getUserToken()!)}` : ""
+                }`}
+                target="_blank"
+                className="flex items-center gap-1 text-[12px] text-slate hover:text-navy-900"
+                title="One-page PDF memo — forwardable to a principal, parent, or supervisor"
+              >
+                📄 Memo PDF
+              </a>
+            )}
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ingestPdf } from "@/lib/ingest/ingest";
+import { notifyBylawWatchers } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,10 @@ export async function POST(req: NextRequest) {
     buffer,
     source: "manual",
   });
+
+  notifyBylawWatchers(stateCode, result.bylawIds, effectiveDate).catch((err) =>
+    console.error("Amendment notification failed:", err)
+  );
 
   return NextResponse.json({ ok: true, ...result });
 }

@@ -81,10 +81,16 @@ export default function AuditPage() {
                 Report this exchange
               </button>
             )}
-            {getUserToken() && (
-              <button onClick={() => window.print()} className="text-[13px] text-slate hover:text-navy-900">
-                Print / save PDF
-              </button>
+            {record && (
+              <a
+                href={`/api/audit/${params.messageId}/memo${
+                  getUserToken() ? `?token=${encodeURIComponent(getUserToken()!)}` : ""
+                }`}
+                target="_blank"
+                className="border border-navy-900 bg-navy-900 px-3 py-1.5 text-[13px] font-medium text-bone hover:bg-navy-700"
+              >
+                Download memo PDF
+              </a>
             )}
           </div>
         </div>

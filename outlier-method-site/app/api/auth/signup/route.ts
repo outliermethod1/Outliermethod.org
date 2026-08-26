@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createUser, getUserByEmail } from "@/lib/db/users";
+import { createUser, getUserByEmail, redeemFoundingCode } from "@/lib/db/users";
 import { createUserSessionToken, generateVerificationToken, hashPassword } from "@/lib/user-auth";
 import { sendEmail, ADMIN_NOTIFY_EMAIL } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -13,7 +13,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Too many attempts. Try again shortly." }, { status: 429 });
   }
 
-  const { email, password } = (await req.json()) as { email?: string; password?: string };
+  const { email, password, foundingCode } = (await req.json()) as {
+    email?: string;
+    password?: string;
+    foundingCode?: string;
+  };
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
@@ -29,9 +33,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 });
   }
 
+  let validFoundingCode: string | undefined;
+  if (foundingCode?.trim()) {
+    const redeemed = await redeemFoundingCode(foundingCode);
+    if (!redeemed) {
+      return NextResponse.json({ error: "That founding-member code is invalid or fully used." }, { status: 400 });
+    }
+    validFoundingCode = foundingCode.trim();
+  }
+
   const passwordHash = await hashPassword(password);
   const token = generateVerificationToken();
-  const user = await createUser(email, passwordHash, token);
+  const user = await createUser(email, passwordHash, token, validFoundingCode);
 
   const origin = req.nextUrl.origin;
   const verifyUrl = `${origin}/api/auth/verify?token=${token}`;

@@ -13,7 +13,10 @@ export interface RequestIdentity {
  * neither) whatever anonymous session cookie they're carrying, if any. */
 export async function resolveIdentity(req: NextRequest): Promise<RequestIdentity> {
   const auth = req.headers.get("authorization");
-  const bearerToken = auth?.replace(/^Bearer\s+/i, "");
+  // window.open / <a href> navigations can't attach a custom header, so a
+  // ?token= query param is accepted as a fallback wherever a link needs to
+  // carry auth (memo/PDF export, audit permalinks opened in a new tab).
+  const bearerToken = auth?.replace(/^Bearer\s+/i, "") || req.nextUrl.searchParams.get("token") || undefined;
   const userId = await verifyUserSessionToken(bearerToken);
 
   const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
