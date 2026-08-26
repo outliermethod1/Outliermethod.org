@@ -10,38 +10,46 @@ export const dynamic = "force-dynamic";
 // anonymous visitor still gets a clean, ready-to-send document with
 // placeholders — the paywall is on volume/history, not on this.
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const template = await getFormTemplate(params.id);
-  if (!template) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  try {
+    const template = await getFormTemplate(params.id);
+    if (!template) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const format = req.nextUrl.searchParams.get("format") === "docx" ? "docx" : "pdf";
+    const format = req.nextUrl.searchParams.get("format") === "docx" ? "docx" : "pdf";
 
-  const identity = await resolveIdentity(req);
-  const user = identity.userId ? await getCurrentUser() : null;
+    const identity = await resolveIdentity(req);
+    const user = identity.userId ? await getCurrentUser() : null;
 
-  const ctx = {
-    title: template.title,
-    body: template.body,
-    schoolName: user?.school ?? null,
-    signature: user?.signature ?? null,
-  };
+    const ctx = {
+      title: template.title,
+      body: template.body,
+      schoolName: user?.school ?? null,
+      signature: user?.signature ?? null,
+    };
 
-  if (format === "docx") {
-    const buffer = await buildFormDocx(ctx);
-    return new NextResponse(new Uint8Array(buffer), {
+    if (format === "docx") {
+      const buffer = await buildFormDocx(ctx);
+      return new NextResponse(new Uint8Array(buffer), {
+        headers: {
+          "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "Content-Disposition": `attachment; filename="${slugify(template.title)}.docx"`,
+        },
+      });
+    }
+
+    const pdfBytes = await buildFormPdf(ctx);
+    return new NextResponse(new Uint8Array(pdfBytes), {
       headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "Content-Disposition": `attachment; filename="${slugify(template.title)}.docx"`,
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${slugify(template.title)}.pdf"`,
       },
     });
+  } catch (err) {
+    console.error("Form export failed:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Export failed" },
+      { status: 500 }
+    );
   }
-
-  const pdfBytes = await buildFormPdf(ctx);
-  return new NextResponse(Buffer.from(pdfBytes), {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${slugify(template.title)}.pdf"`,
-    },
-  });
 }
 
 function slugify(s: string): string {
