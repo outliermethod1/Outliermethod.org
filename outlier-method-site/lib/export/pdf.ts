@@ -6,6 +6,19 @@ import { DISCLAIMER_BODY } from "../disclaimer";
 const MARGIN = 54;
 const PAGE_SIZE: [number, number] = [612, 792]; // US Letter
 
+// pdf-lib's standard fonts use WinAnsi encoding — doesn't cover every
+// Unicode punctuation mark Eli's own answers use (em dashes especially),
+// so sanitize before drawing instead of letting drawText throw.
+function toWinAnsiSafe(text: string): string {
+  return text
+    .replace(/[−–—]/g, "-")
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/…/g, "...")
+    .replace(/[•●]/g, "-")
+    .replace(/[^\x00-\xFF]/g, "?");
+}
+
 interface ExportContext {
   conversation: Conversation;
   messages: Message[];
@@ -23,9 +36,10 @@ function makeDrawer(doc: PDFDocument, font: PDFFont) {
   };
 
   const draw = (
-    text: string,
+    rawText: string,
     opts: { size?: number; f?: PDFFont; color?: [number, number, number]; gapAfter?: number } = {}
   ) => {
+    const text = toWinAnsiSafe(rawText);
     const size = opts.size ?? 10;
     const f = opts.f ?? font;
     const color = opts.color ? rgb(...opts.color) : rgb(0.07, 0.1, 0.14);

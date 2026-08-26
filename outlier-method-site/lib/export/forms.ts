@@ -4,6 +4,20 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
 const MARGIN = 54;
 const PAGE_SIZE: [number, number] = [612, 792];
 
+// pdf-lib's standard fonts use WinAnsi encoding, which doesn't cover every
+// Unicode punctuation mark a template might contain (typographic minus,
+// smart quotes, etc.) — sanitize to the closest WinAnsi-safe character
+// instead of letting drawText throw on an unencodable code point.
+function toWinAnsiSafe(text: string): string {
+  return text
+    .replace(/[−–—]/g, "-") // minus sign, en dash, em dash
+    .replace(/[‘’]/g, "'") // smart single quotes
+    .replace(/[“”]/g, '"') // smart double quotes
+    .replace(/…/g, "...") // ellipsis
+    .replace(/[•●]/g, "-") // bullet points
+    .replace(/[^\x00-\xFF]/g, "?"); // anything else outside Latin-1 (WinAnsi's superset)
+}
+
 export interface FormExportContext {
   title: string;
   body: string;
@@ -22,7 +36,8 @@ export async function buildFormPdf(ctx: FormExportContext): Promise<Uint8Array> 
     page = doc.addPage(PAGE_SIZE);
     y = PAGE_SIZE[1] - MARGIN;
   };
-  const draw = (text: string, opts: { size?: number; f?: PDFFont; gapAfter?: number } = {}) => {
+  const draw = (rawText: string, opts: { size?: number; f?: PDFFont; gapAfter?: number } = {}) => {
+    const text = toWinAnsiSafe(rawText);
     const size = opts.size ?? 10;
     const f = opts.f ?? font;
     const maxWidth = PAGE_SIZE[0] - MARGIN * 2;
