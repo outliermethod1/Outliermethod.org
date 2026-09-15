@@ -45,6 +45,10 @@ export function CoachApp() {
   const [showGate, setShowGate] = useState(false);
   const [gateScope, setGateScope] = useState<"anon" | "account">("anon");
   const [gateLimit, setGateLimit] = useState(5);
+  const [pendingImage, setPendingImage] = useState<{ file: File; previewUrl: string } | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   // Mirrors voiceMode for the async audio.onended callback below, which
@@ -136,7 +140,13 @@ export function CoachApp() {
     if (!res.ok) return;
     const data = await res.json();
     setMessages(
-      (data.messages ?? []).map((m: any) => ({ id: m.id, role: m.role, content: m.content, mode: m.mode }))
+      (data.messages ?? []).map((m: any) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        mode: m.mode,
+        imageUrl: m.image_url,
+      }))
     );
   }
 
@@ -200,6 +210,29 @@ export function CoachApp() {
     recognition.start();
   }
 
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImageError(null);
+    if (!file.type.startsWith("image/")) {
+      setImageError("That's not an image file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setImageError("Image must be under 10MB.");
+      return;
+    }
+    if (pendingImage) URL.revokeObjectURL(pendingImage.previewUrl);
+    setPendingImage({ file, previewUrl: URL.createObjectURL(file) });
+  }
+
+  function removePendingImage() {
+    if (pendingImage) URL.revokeObjectURL(pendingImage.previewUrl);
+    setPendingImage(null);
+    setImageError(null);
+  }
+
   function toggleMic() {
     if (listening) {
       recognitionRef.current?.stop();
@@ -223,18 +256,42 @@ export function CoachApp() {
   }
 
   async function send(text: string) {
-    if (!stateCode || !text.trim() || phase !== "idle" || showGate) return;
+    if (!stateCode || (!text.trim() && !pendingImage) || phase !== "idle" || showGate) return;
 
     stickToBottomRef.current = true;
-    const userMsg: ChatMessage = { id: `local-${Date.now()}`, role: "user", content: text };
+    const imageToSend = pendingImage;
+    setPendingImage(null);
+    setImageError(null);
+    setPhase("thinking");
+
+    let imageUrl: string | null = null;
+    if (imageToSend) {
+      setUploadingImage(true);
+      const fd = new FormData();
+      fd.append("file", imageToSend.file);
+      try {
+        const uploadRes = await fetch("/api/chat/upload-image", { method: "POST", body: fd });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadData.error ?? "Upload failed");
+        imageUrl = uploadData.url;
+      } catch (err) {
+        setUploadingImage(false);
+        setImageError(err instanceof Error ? err.message : "Image upload failed.");
+        setPhase("idle");
+        return;
+      }
+      setUploadingImage(false);
+      URL.revokeObjectURL(imageToSend.previewUrl);
+    }
+
+    const userMsg: ChatMessage = { id: `local-${Date.now()}`, role: "user", content: text, imageUrl };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
-    setPhase("thinking");
 
     const res = await authFetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stateCode, message: text, conversationId }),
+      body: JSON.stringify({ stateCode, message: text, conversationId, imageUrl }),
     });
 
     if (res.status === 403) {
@@ -449,6 +506,29 @@ export function CoachApp() {
             }}
             className="border-t border-rule bg-white p-4"
           >
+            {(pendingImage || imageError) && (
+              <div className="mx-auto mb-2 flex max-w-3xl items-center gap-3">
+                {pendingImage && (
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={pendingImage.previewUrl}
+                      alt="Attached preview"
+                      className="h-16 w-16 border border-rule object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removePendingImage}
+                      className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center border border-navy-900 bg-white text-[11px] text-navy-900 hover:bg-navy-900 hover:text-white"
+                      aria-label="Remove image"
+                    >
+                      &#10005;
+                    </button>
+                  </div>
+                )}
+                {imageError && <p className="text-[12px] text-red">{imageError}</p>}
+              </div>
+            )}
             <div className="mx-auto flex max-w-3xl items-end gap-3">
               <div className="hidden shrink-0 sm:block">
                 <PortraitAvatar phase={phase} size={88} />
@@ -464,11 +544,34 @@ export function CoachApp() {
                       ? gateScope === "account"
                         ? "Upgrade to keep asking eligibility questions"
                         : "Create a free account to keep going"
-                      : "Ask Coach Eli anything..."
+                      : pendingImage
+                        ? "Add a note about this photo (optional)…"
+                        : "Ask Coach Eli anything..."
                 }
                 disabled={showGate}
                 className="flex-1 border border-rule px-3 py-2 text-[15px] focus:border-navy-900 focus:outline-none disabled:bg-bone disabled:text-slate"
               />
+              {!showGate && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    title="Attach a photo for Coach Eli to look at"
+                    aria-label="Attach a photo"
+                    className="border border-navy-900 px-3 py-2 text-[15px] text-navy-900 hover:bg-navy-900 hover:text-bone disabled:opacity-50"
+                  >
+                    📎
+                  </button>
+                </>
+              )}
               {micSupported && !showGate && (
                 <button
                   type="button"

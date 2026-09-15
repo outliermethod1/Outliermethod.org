@@ -210,8 +210,10 @@ create table if not exists messages (
   role text not null, -- 'user' | 'assistant'
   content text not null,
   mode text, -- 'A' | 'B' | 'mixed', assistant messages only
+  image_url text, -- user-attached image (Vercel Blob), sent to Eli as vision input
   created_at timestamptz not null default now()
 );
+alter table messages add column if not exists image_url text;
 
 -- Audit log: which chunks backed a given Mode A answer
 create table if not exists chat_logs (

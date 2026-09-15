@@ -83,5 +83,6 @@ export interface Message {
   role: "user" | "assistant";
   content: string;
   mode: "A" | "B" | "mixed" | null;
+  image_url: string | null;
   created_at: string;
 }

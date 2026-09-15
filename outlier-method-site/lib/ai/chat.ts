@@ -12,6 +12,16 @@ const MAX_TOOL_HOPS = 4;
 export interface ChatTurn {
   role: "user" | "assistant";
   content: string;
+  imageUrl?: string | null;
+}
+
+function toMessageParam(turn: ChatTurn): Anthropic.MessageParam {
+  if (!turn.imageUrl) return { role: turn.role, content: turn.content };
+  const blocks: Anthropic.ContentBlockParam[] = [
+    { type: "image", source: { type: "url", url: turn.imageUrl } } as Anthropic.ImageBlockParam,
+  ];
+  if (turn.content.trim()) blocks.push({ type: "text", text: turn.content });
+  return { role: turn.role, content: blocks };
 }
 
 export interface StreamResult {
@@ -130,7 +140,7 @@ export async function runCoachEli(
     : [WEB_SEARCH_TOOL, LOOKUP_SCHOOL_TOOL];
 
   async function* textStream(): AsyncGenerator<string> {
-    let messages: Anthropic.MessageParam[] = history.map((m) => ({ role: m.role, content: m.content }));
+    let messages: Anthropic.MessageParam[] = history.map(toMessageParam);
 
     for (let hop = 0; hop < MAX_TOOL_HOPS; hop++) {
       const messageStream = anthropic.messages.stream({

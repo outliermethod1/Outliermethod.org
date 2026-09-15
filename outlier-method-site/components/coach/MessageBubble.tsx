@@ -18,6 +18,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   mode?: "A" | "B" | null;
+  imageUrl?: string | null;
 }
 
 const CITE_RE = /\[\[cite:([a-f0-9-]+)\]\]/g;
@@ -49,7 +50,15 @@ export function MessageBubble({
             : "border-l-2 border-navy-900 bg-white text-ink"
         }`}
       >
-        <div className="whitespace-pre-wrap">{parts}</div>
+        {message.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={message.imageUrl}
+            alt="Attached"
+            className="mb-2 max-h-64 max-w-full border border-rule object-contain"
+          />
+        )}
+        {message.content && <div className="whitespace-pre-wrap">{parts}</div>}
         {!isUser && message.mode === "A" && <DisclaimerBlock state={state} />}
         {!isUser && message.content && !isStreaming && !message.id.startsWith("local-") && (
           <div className="mt-2 flex flex-wrap items-center gap-3">

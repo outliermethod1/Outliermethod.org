@@ -86,11 +86,12 @@ export async function addMessage(
   conversationId: string,
   role: "user" | "assistant",
   content: string,
-  mode: "A" | "B" | "mixed" | null = null
+  mode: "A" | "B" | "mixed" | null = null,
+  imageUrl: string | null = null
 ): Promise<Message> {
   const row = await queryOne<Message>(
-    `insert into messages (conversation_id, role, content, mode) values ($1, $2, $3, $4) returning *`,
-    [conversationId, role, content, mode]
+    `insert into messages (conversation_id, role, content, mode, image_url) values ($1, $2, $3, $4, $5) returning *`,
+    [conversationId, role, content, mode, imageUrl]
   );
   if (!row) throw new Error("Failed to add message");
   return row;

@@ -41,14 +41,20 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { stateCode, message, conversationId: incomingConversationId } = body as {
+  const {
+    stateCode,
+    message,
+    conversationId: incomingConversationId,
+    imageUrl,
+  } = body as {
     stateCode: string;
     message: string;
     conversationId?: string;
+    imageUrl?: string | null;
   };
 
-  if (!stateCode || !message?.trim()) {
-    return jsonResponse({ error: "stateCode and message are required" }, 400);
+  if (!stateCode || (!message?.trim() && !imageUrl)) {
+    return jsonResponse({ error: "stateCode and message (or an image) are required" }, 400);
   }
 
   let conversationId = incomingConversationId;
@@ -116,16 +122,20 @@ export async function POST(req: NextRequest) {
       }
     }
     if (!conversationId) {
-      const conv = await createConversation(stateCode, message.slice(0, 60), {
+      const conv = await createConversation(stateCode, message?.trim() ? message.slice(0, 60) : "Photo question", {
         userId: identity.userId,
         anonSessionId: anonId,
       });
       conversationId = conv.id;
     }
 
-    await addMessage(conversationId, "user", message);
+    await addMessage(conversationId, "user", message ?? "", null, imageUrl ?? null);
     const priorMessages = await listMessages(conversationId);
-    const history: ChatTurn[] = priorMessages.map((m) => ({ role: m.role, content: m.content }));
+    const history: ChatTurn[] = priorMessages.map((m) => ({
+      role: m.role,
+      content: m.content,
+      imageUrl: m.image_url,
+    }));
 
     // currentUser is null for admin sessions and anonymous visitors (no
     // bearer token) — Eli just won't have a signature to sign with for them.
