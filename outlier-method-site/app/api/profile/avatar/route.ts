@@ -19,9 +19,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Image must be under 5MB." }, { status: 400 });
   }
 
-  const ext = file.name.split(".").pop() || "jpg";
-  const blob = await put(`avatars/${user.id}.${ext}`, file, { access: "public", addRandomSuffix: true });
-
-  const updated = await updateProfile(user.id, { avatar_url: blob.url });
-  return NextResponse.json({ ok: true, avatarUrl: updated?.avatar_url });
+  try {
+    const ext = file.name.split(".").pop() || "jpg";
+    const blob = await put(`avatars/${user.id}.${ext}`, file, { access: "public", addRandomSuffix: true });
+    const updated = await updateProfile(user.id, { avatar_url: blob.url });
+    return NextResponse.json({ ok: true, avatarUrl: updated?.avatar_url });
+  } catch (err) {
+    console.error("avatar upload failed:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Upload failed" },
+      { status: 500 }
+    );
+  }
 }

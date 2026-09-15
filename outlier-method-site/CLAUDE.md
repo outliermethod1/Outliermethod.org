@@ -78,6 +78,20 @@ immediately after `ALTER TABLE` (Neon's pooled connections briefly serving a sta
 if a migration reports success but a query against the new column/table fails right after, retry
 once before assuming the migration itself failed.
 
+### 6. Every route handler needs its own try/catch around external calls — this has recurred repeatedly
+
+An unhandled throw inside a route handler produces an **empty-body 500** (no error message reaches
+the client, nothing useful in the response) — this exact failure mode has hit `/api/bootstrap/ingest-handbook`,
+the form PDF/DOCX export, `/api/chat/upload-image`, and `/api/profile/avatar`, all for the same reason:
+a call to something external (Vercel Blob's `put()`, `pdf-lib`'s `drawText`, a fetch to a third-party
+URL) threw, and there was no try/catch to turn that into a real JSON error response. **New route
+handlers should wrap any Blob/fetch/PDF-generation call in try/catch from the start** — don't wait
+for the empty 500 to show up in production first. `BLOB_READ_WRITE_TOKEN` specifically was never
+actually set in this project's Vercel env vars for a long stretch, which is what triggered this on
+both Blob-upload routes — check that it's actually present (not just `BLOB_STORE_ID` /
+`BLOB_WEBHOOK_PUBLIC_KEY`, which a Blob store connection adds automatically but which are not the
+same thing) before assuming Blob uploads work.
+
 ## Architecture notes
 
 - Single migration file (`migrations/001_init.sql`), re-run idempotently via `/api/bootstrap`
