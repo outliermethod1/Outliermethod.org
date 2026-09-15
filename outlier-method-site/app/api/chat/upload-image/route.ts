@@ -27,11 +27,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Image must be under 10MB." }, { status: 400 });
   }
 
-  const ext = file.name.split(".").pop() || "jpg";
-  const blob = await put(`chat-images/${crypto.randomUUID()}.${ext}`, file, {
-    access: "public",
-    addRandomSuffix: true,
-  });
-
-  return NextResponse.json({ ok: true, url: blob.url });
+  try {
+    const ext = file.name.split(".").pop() || "jpg";
+    const blob = await put(`chat-images/${crypto.randomUUID()}.${ext}`, file, {
+      access: "public",
+      addRandomSuffix: true,
+    });
+    return NextResponse.json({ ok: true, url: blob.url });
+  } catch (err) {
+    console.error("chat image upload failed:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Upload failed" },
+      { status: 500 }
+    );
+  }
 }
