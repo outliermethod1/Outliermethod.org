@@ -16,6 +16,14 @@ const HEADING_PATTERNS = [
   /^(?<id>\d{1,4}(?:\.\d{1,3}){0,2})\s+(?<title>[A-Z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
   /^(?:Rule|RULE)\s+(?<id>\d{1,3}(?:[.\-]\d{1,3})?)\s*[:\-–]?\s*(?<title>[A-Za-z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
   /^(?:Article|ARTICLE)\s+(?<id>[IVXLC]+|\d+)\s*[:\-–—]\s*(?<title>[A-Za-z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
+  // "BYLAW 101.00 AGE" / "SECTION 6.2 ELIGIBILITY" / "BY-LAW 3.1 TRANSFERS" —
+  // a word prefix followed by a dotted numeric id then an (often all-caps)
+  // title, all on one line. Seen in MSHSL and several others.
+  /^(?:BY-?LAW|SECTION)\s+(?<id>\d{1,4}(?:\.\d{1,3}){0,2})\s+(?<title>[A-Z][A-Za-z0-9 ,'’\/&()-]{2,90})$/i,
+  // State-statute citation style, e.g. "SDCL 13-1-57 DEFINITIONS REGARDING..."
+  // or "ORS 339.010 TITLE" — a short all-caps code abbreviation, a
+  // hyphen-or-dot-separated numeric id, then a title on the same line.
+  /^[A-Z]{2,6}\s+(?<id>\d+[A-Z]?(?:[.\-]\d+[A-Z]?){1,3})\s+(?<title>[A-Z][A-Za-z0-9 ,'’\/&()-]{2,90})$/,
 ];
 
 export async function parsePdf(buffer: Buffer): Promise<{ pages: string[] }> {
