@@ -24,12 +24,45 @@ export async function parsePdf(buffer: Buffer): Promise<{ pages: string[] }> {
   await pdfParse(buffer, {
     pagerender: async (pageData: any) => {
       const textContent = await pageData.getTextContent();
-      const text = textContent.items.map((item: any) => item.str).join(" ");
+      const text = reconstructLines(textContent.items);
       pages.push(text);
       return text;
     },
   });
   return { pages };
+}
+
+// pdf.js text items are individual runs positioned by (x, y), not lines —
+// joining them with a plain space (the old approach) collapses an entire
+// page into one line with no \n at all, which silently broke
+// chunkIntoSections's heading detection below for almost every real-world
+// PDF (it only "worked" by coincidence when a document's own text layer
+// happened to embed unusual whitespace). Reconstruct actual lines by
+// breaking whenever the Y-coordinate changes or pdf.js reports hasEOL.
+function reconstructLines(items: any[]): string {
+  const lines: string[] = [];
+  let currentLine = "";
+  let lastY: number | null = null;
+
+  for (const item of items) {
+    const y = Array.isArray(item.transform) ? Math.round(item.transform[5]) : null;
+    if (currentLine && lastY !== null && y !== null && y !== lastY) {
+      lines.push(currentLine.trim());
+      currentLine = "";
+    }
+    if (item.str) {
+      currentLine += (currentLine && !/\s$/.test(currentLine) ? " " : "") + item.str;
+    }
+    if (item.hasEOL) {
+      lines.push(currentLine.trim());
+      currentLine = "";
+      lastY = null;
+    } else {
+      lastY = y;
+    }
+  }
+  if (currentLine.trim()) lines.push(currentLine.trim());
+  return lines.filter(Boolean).join("\n");
 }
 
 export function chunkIntoSections(pages: string[]): ParsedSection[] {

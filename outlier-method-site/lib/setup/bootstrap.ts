@@ -187,6 +187,52 @@ export interface HandbookIngestResult {
  * yet. Many researched URLs are HTML landing pages rather than direct PDF
  * links; those are reported as "not_a_pdf" rather than guessed at.
  */
+// A "handbook_url" that turns out to be an HTML landing page often just
+// has the real PDF linked a click deeper ("Download Handbook", etc.) —
+// scan for the most plausible PDF link on the page rather than giving up
+// immediately. Only followed once (no recursive crawling).
+function findPdfLinkInHtml(html: string, baseUrl: string): string | null {
+  const hrefRe = /<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>(.*?)<\/a>/gis;
+  const candidates: { url: string; score: number }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = hrefRe.exec(html))) {
+    const href = m[1];
+    const text = m[2].replace(/<[^>]+>/g, " ").trim().toLowerCase();
+    if (!/\.pdf(\?|#|$)/i.test(href)) continue;
+    let resolved: string;
+    try {
+      resolved = new URL(href, baseUrl).toString();
+    } catch {
+      continue;
+    }
+    let score = 0;
+    const hay = `${href} ${text}`.toLowerCase();
+    if (/handbook/.test(hay)) score += 3;
+    if (/bylaw|by-law/.test(hay)) score += 3;
+    if (/constitution/.test(hay)) score += 2;
+    if (/rule|regulation/.test(hay)) score += 2;
+    if (/eligib/.test(hay)) score += 1;
+    candidates.push({ url: resolved, score });
+  }
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates[0].url;
+}
+
+async function fetchLooksLikePdf(url: string): Promise<{ res: Response; buffer: Buffer; isPdf: boolean; contentType: string } | null> {
+  let res: Response;
+  try {
+    res = await fetch(url, { redirect: "follow" });
+  } catch {
+    return null;
+  }
+  if (!res.ok) return null;
+  const buffer = Buffer.from(await res.arrayBuffer());
+  const contentType = res.headers.get("content-type") ?? "";
+  const isPdf = contentType.includes("pdf") || buffer.subarray(0, 5).toString("latin1") === "%PDF-";
+  return { res, buffer, isPdf, contentType };
+}
+
 export async function ingestRealHandbook(stateCode: string): Promise<HandbookIngestResult> {
   const entry = STATE_CONFIG_DATA.find((s) => s.state_code === stateCode.toLowerCase());
   if (!entry) {
@@ -201,28 +247,35 @@ export async function ingestRealHandbook(stateCode: string): Promise<HandbookIng
     return { state_code: stateCode, status: "already_present", detail: "Chunks already exist — skipped." };
   }
 
-  let res: Response;
-  try {
-    res = await fetch(entry.handbook_url, { redirect: "follow" });
-  } catch (err) {
+  let fetched = await fetchLooksLikePdf(entry.handbook_url);
+  if (!fetched) {
     return {
       state_code: stateCode,
       status: "fetch_failed",
-      detail: `Fetch error: ${err instanceof Error ? err.message : String(err)}`,
+      detail: `Could not fetch ${entry.handbook_url}.`,
     };
   }
-  if (!res.ok) {
-    return { state_code: stateCode, status: "fetch_failed", detail: `HTTP ${res.status} from ${entry.handbook_url}` };
+
+  let sourceUrl = entry.handbook_url;
+  if (!fetched.isPdf) {
+    // Landing page — scan it for the real PDF link one hop deeper before
+    // giving up (e.g. a "Download Handbook" link on the page).
+    const html = fetched.buffer.toString("utf-8");
+    const deeperUrl = findPdfLinkInHtml(html, entry.handbook_url);
+    if (deeperUrl) {
+      const deeperFetch = await fetchLooksLikePdf(deeperUrl);
+      if (deeperFetch?.isPdf) {
+        fetched = deeperFetch;
+        sourceUrl = deeperUrl;
+      }
+    }
   }
 
-  const buffer = Buffer.from(await res.arrayBuffer());
-  const contentType = res.headers.get("content-type") ?? "";
-  const looksLikePdf = contentType.includes("pdf") || buffer.subarray(0, 5).toString("latin1") === "%PDF-";
-  if (!looksLikePdf) {
+  if (!fetched.isPdf) {
     return {
       state_code: stateCode,
       status: "not_a_pdf",
-      detail: `${entry.handbook_url} returned content-type "${contentType}" — likely an HTML landing page, not a direct PDF. Needs a corrected URL via /admin/documents or /admin/config.`,
+      detail: `${entry.handbook_url} returned content-type "${fetched.contentType}" — likely an HTML landing page, not a direct PDF, and no PDF link was found on the page either. Needs a corrected URL via /admin/documents or /admin/config.`,
     };
   }
 
@@ -230,14 +283,14 @@ export async function ingestRealHandbook(stateCode: string): Promise<HandbookIng
     stateCode,
     effectiveDate: new Date().toISOString().slice(0, 10),
     slug: "handbook",
-    buffer,
+    buffer: fetched.buffer,
     source: "crawler",
   });
 
   return {
     state_code: stateCode,
     status: "ingested",
-    detail: `Ingested ${result.chunkCount} sections from ${entry.handbook_url}. Effective date set to today — correct it via a fresh upload with the handbook's real effective date once known.`,
+    detail: `Ingested ${result.chunkCount} sections from ${sourceUrl}${sourceUrl !== entry.handbook_url ? " (found one hop deeper than the configured handbook_url)" : ""}. Effective date set to today — correct it via a fresh upload with the handbook's real effective date once known.`,
   };
 }
 
