@@ -13,7 +13,10 @@ export interface ParsedSection {
 // or "Article V — Amateurism". Tuned to be generic across state handbook formats;
 // expect to add per-state heading patterns as real documents are onboarded.
 const HEADING_PATTERNS = [
-  /^(?<id>\d{1,4}(?:\.\d{1,3}){0,2})\s+(?<title>[A-Z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
+  // Bare numeric id, optionally with a trailing bare period before the title
+  // — CIF's "101. PROXY VOTING" style, alongside the dot-decimal id style
+  // ("1730.3 Transfer Students") already supported without one.
+  /^(?<id>\d{1,4}(?:\.\d{1,3}){0,2})\.?\s+(?<title>[A-Z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
   /^(?:Rule|RULE)\s+(?<id>\d{1,3}(?:[.\-]\d{1,3})?)\s*[:\-–]?\s*(?<title>[A-Za-z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
   /^(?:Article|ARTICLE)\s+(?<id>[IVXLC]+|\d+)\s*[:\-–—]\s*(?<title>[A-Za-z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
   // "BYLAW 101.00 AGE" / "SECTION 6.2 ELIGIBILITY" / "BY-LAW 3.1 TRANSFERS" /

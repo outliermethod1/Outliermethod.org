@@ -16,13 +16,22 @@ export async function POST(req: NextRequest) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const result = await ingestPdf({
-    stateCode,
-    effectiveDate,
-    slug: slug.replace(/[^a-zA-Z0-9-]/g, "-"),
-    buffer,
-    source: "manual",
-  });
+  let result;
+  try {
+    result = await ingestPdf({
+      stateCode,
+      effectiveDate,
+      slug: slug.replace(/[^a-zA-Z0-9-]/g, "-"),
+      buffer,
+      source: "manual",
+    });
+  } catch (err) {
+    console.error(`Manual upload ingest failed for ${stateCode}:`, err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : String(err) },
+      { status: 500 }
+    );
+  }
 
   notifyBylawWatchers(stateCode, result.bylawIds, effectiveDate).catch((err) =>
     console.error("Amendment notification failed:", err)

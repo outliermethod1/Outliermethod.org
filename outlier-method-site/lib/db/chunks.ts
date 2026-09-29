@@ -85,6 +85,14 @@ export async function deleteChunksForState(stateCode: string): Promise<number> {
   return rows.length;
 }
 
+/** Surgical removal of a single bad chunk (e.g. a chunker false-positive that
+ * matched a calendar/table row rather than a real bylaw) without discarding
+ * an otherwise-good ingestion of the rest of the document. */
+export async function deleteChunkById(id: string): Promise<boolean> {
+  const rows = await query<{ id: string }>(`delete from bylaw_chunks where id = $1 returning id`, [id]);
+  return rows.length > 0;
+}
+
 export async function indexHealthByState(): Promise<StateIndexHealth[]> {
   return query<StateIndexHealth>(
     `select
