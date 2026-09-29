@@ -74,6 +74,17 @@ export interface StateIndexHealth {
   most_recent_effective_date: string | null;
 }
 
+/** Wipe every chunk on file for a state — used to discard a bad auto-ingest
+ * (e.g. the one-hop PDF-link fallback landed on the wrong document) so the
+ * state can be cleanly re-ingested rather than living with wrong content
+ * sitting alongside whatever gets added next. */
+export async function deleteChunksForState(stateCode: string): Promise<number> {
+  const rows = await query<{ id: string }>(`delete from bylaw_chunks where state_code = $1 returning id`, [
+    stateCode.toLowerCase(),
+  ]);
+  return rows.length;
+}
+
 export async function indexHealthByState(): Promise<StateIndexHealth[]> {
   return query<StateIndexHealth>(
     `select

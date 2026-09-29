@@ -191,8 +191,17 @@ export interface HandbookIngestResult {
 // has the real PDF linked a click deeper ("Download Handbook", etc.) —
 // scan for the most plausible PDF link on the page rather than giving up
 // immediately. Only followed once (no recursive crawling).
+// Minimum score to accept a deeper link at all — below this we'd rather
+// honestly report not_a_pdf than guess wrong. A wrong guess here doesn't
+// just fail to help, it gets ingested and cited to a user as if it were
+// authoritative (see: Virginia's fallback landing on an NCAA Eligibility
+// Center document because "eligib" alone scored above zero — a different
+// governing body's document presented as VHSL's own bylaws).
+const MIN_LINK_SCORE = 4;
+
 function findPdfLinkInHtml(html: string, baseUrl: string): string | null {
   const hrefRe = /<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>(.*?)<\/a>/gis;
+  const baseHost = safeHostname(baseUrl);
   const candidates: { url: string; score: number }[] = [];
   let m: RegExpExecArray | null;
   while ((m = hrefRe.exec(html))) {
@@ -207,16 +216,37 @@ function findPdfLinkInHtml(html: string, baseUrl: string): string | null {
     }
     let score = 0;
     const hay = `${href} ${text}`.toLowerCase();
-    if (/handbook/.test(hay)) score += 3;
-    if (/bylaw|by-law/.test(hay)) score += 3;
-    if (/constitution/.test(hay)) score += 2;
-    if (/rule|regulation/.test(hay)) score += 2;
-    if (/eligib/.test(hay)) score += 1;
+    if (/\bhandbook\b/.test(hay)) score += 3;
+    if (/\bbylaw|by-law/.test(hay)) score += 3;
+    if (/\bconstitution\b/.test(hay)) score += 2;
+    if (/\brule(s)?\b|\bregulation/.test(hay)) score += 2;
+    // A generic "eligibility" mention alone is not enough signal on its
+    // own (an unrelated eligibility-center doc, a single sport's eligibility
+    // memo, etc. all match this) — it only counts alongside a stronger term.
+    if (/\beligib/.test(hay) && score > 0) score += 1;
+    // Penalize things that are clearly NOT the general handbook even
+    // though they're a PDF with some plausible-looking word nearby.
+    if (/\b(broadcast|application|form|guide|memo|dates?|schedule|calendar)\b/.test(hay)) score -= 3;
+    const singleSport =
+      /\b(baseball|basketball|football|soccer|volleyball|wrestling|softball|golf|tennis|track|swim(ming)?|hockey|lacrosse|cheer|gymnastics|cross[\s-]?country)\b/;
+    if (singleSport.test(hay)) score -= 3;
+    // Same-domain links are far more trustworthy than a link out to a
+    // completely different organization's site.
+    const candidateHost = safeHostname(resolved);
+    if (baseHost && candidateHost && candidateHost !== baseHost) score -= 4;
     candidates.push({ url: resolved, score });
   }
   if (candidates.length === 0) return null;
   candidates.sort((a, b) => b.score - a.score);
-  return candidates[0].url;
+  return candidates[0].score >= MIN_LINK_SCORE ? candidates[0].url : null;
+}
+
+function safeHostname(url: string): string | null {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
 }
 
 async function fetchLooksLikePdf(url: string): Promise<{ res: Response; buffer: Buffer; isPdf: boolean; contentType: string } | null> {
