@@ -123,6 +123,17 @@ export const STATE_CONFIG_DATA: StateConfigResearch[] = [
     notes: "DIAA operates as a division of the Delaware Dept of Education, not an independent nonprofit — rules are DOE regulations.",
   },
   {
+    state_code: "dc",
+    state_name: "District of Columbia",
+    association_name: "District of Columbia State Athletic Association (DCSAA)",
+    handbook_url: "https://www.flipsnack.com/EE9F8AEEFB5/dcsaa-handbook-2026-27/full-view.html",
+    bulletins_url: null,
+    eligibility_contact_name: "Evelyn Lightfoot, Compliance Specialist, DCSAA",
+    eligibility_contact_phone: "(202) 417-0996",
+    eligibility_contact_email: "Evelyn.Lightfoot1@dc.gov",
+    notes: "handbook_url is a Flipsnack interactive viewer (2026-27 handbook), not a direct PDF — no static PDF found on dcsaasports.com, so this won't auto-ingest and needs a manually-downloaded PDF via /admin/documents. No separate bulletins/amendments page found. General office: dcsaasports@dc.gov, (202) 724-4776 area, 1050 First Street NE 6th Floor, Washington DC 20002. Secondary contact: Alicia DiFazio, General Counsel, (202) 545-7317, alicia.difazio1@dc.gov. Contact details moderate confidence — worth spot-checking dcsaasports.com/our-team.",
+  },
+  {
     state_code: "fl",
     state_name: "Florida",
     association_name: "Florida High School Athletic Association (FHSAA)",
