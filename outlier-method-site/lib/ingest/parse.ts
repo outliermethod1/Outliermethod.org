@@ -16,10 +16,12 @@ const HEADING_PATTERNS = [
   /^(?<id>\d{1,4}(?:\.\d{1,3}){0,2})\s+(?<title>[A-Z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
   /^(?:Rule|RULE)\s+(?<id>\d{1,3}(?:[.\-]\d{1,3})?)\s*[:\-–]?\s*(?<title>[A-Za-z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
   /^(?:Article|ARTICLE)\s+(?<id>[IVXLC]+|\d+)\s*[:\-–—]\s*(?<title>[A-Za-z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
-  // "BYLAW 101.00 AGE" / "SECTION 6.2 ELIGIBILITY" / "BY-LAW 3.1 TRANSFERS" —
-  // a word prefix followed by a dotted numeric id then an (often all-caps)
-  // title, all on one line. Seen in MSHSL and several others.
-  /^(?:BY-?LAW|SECTION)\s+(?<id>\d{1,4}(?:\.\d{1,3}){0,2})\s+(?<title>[A-Z][A-Za-z0-9 ,'’\/&()-]{2,90})$/i,
+  // "BYLAW 101.00 AGE" / "SECTION 6.2 ELIGIBILITY" / "BY-LAW 3.1 TRANSFERS" /
+  // "BYLAW 6. TRANSFER RULE- CITIZENS OF THE U.S. AND D.C." — a word prefix,
+  // a numeric id (optionally dotted, optionally followed by a bare period
+  // before the title, as KHSAA uses), then an (often all-caps) title that
+  // may itself contain periods (state abbreviations) or an en/em dash.
+  /^(?:BY-?LAW|SECTION)\s+(?<id>\d{1,4}(?:\.\d{1,3}){0,2})\.?\s+(?<title>[A-Z][A-Za-z0-9 ,.'’"“”\/&()–—-]{2,90})$/i,
   // State-statute citation style, e.g. "SDCL 13-1-57 DEFINITIONS REGARDING..."
   // or "ORS 339.010 TITLE" — a short all-caps code abbreviation, a
   // hyphen-or-dot-separated numeric id, then a title on the same line.
@@ -128,7 +130,13 @@ function matchHeading(line: string): { id: string; title: string } | null {
   for (const pattern of HEADING_PATTERNS) {
     const m = line.match(pattern);
     if (m?.groups?.id && m.groups.title) {
-      return { id: m.groups.id, title: m.groups.title.trim() };
+      const title = m.groups.title.trim();
+      // A table-of-contents dot-leader line ("Section 1. Dues .......... 4")
+      // otherwise matches this same pattern once "." is allowed in titles
+      // (for real abbreviations like "U.S."/"D.C.") — a run of 2+ dots is
+      // never a real title, only ever a TOC leader, so reject it.
+      if (title.includes("..")) continue;
+      return { id: m.groups.id, title };
     }
   }
   return null;

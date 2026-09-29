@@ -249,10 +249,21 @@ function safeHostname(url: string): string | null {
   }
 }
 
+// Some state association sites sit behind a WAF (Azure Front Door,
+// Cloudflare, etc.) that blocks requests with no User-Agent or a
+// non-browser one — Node's fetch sends neither by default. Kentucky's
+// education.ky.gov returns an explicit "The request is blocked" HTML page
+// for a bare fetch; a browser UA passes straight through.
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
 async function fetchLooksLikePdf(url: string): Promise<{ res: Response; buffer: Buffer; isPdf: boolean; contentType: string } | null> {
   let res: Response;
   try {
-    res = await fetch(url, { redirect: "follow" });
+    res = await fetch(url, {
+      redirect: "follow",
+      headers: { "User-Agent": BROWSER_USER_AGENT, Accept: "application/pdf,*/*" },
+    });
   } catch {
     return null;
   }
