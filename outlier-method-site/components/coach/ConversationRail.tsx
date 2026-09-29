@@ -17,6 +17,7 @@ export function ConversationRail({
   onDelete,
   mobileOpen,
   onCloseMobile,
+  showHistory,
 }: {
   conversations: ConversationSummary[];
   activeId: string | null;
@@ -26,8 +27,11 @@ export function ConversationRail({
   onDelete: (id: string) => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  // Anonymous visitors have no saved conversation history — still get the
+  // mobile nav drawer (that's the whole point), just not the list/New button.
+  showHistory: boolean;
 }) {
-  const body = (
+  const history = showHistory && (
     <>
       <div className="border-b border-navy-700 p-4">
         <button
@@ -68,14 +72,49 @@ export function ConversationRail({
     </>
   );
 
+  const navLinks = (
+    <div className="flex flex-col gap-3 border-t border-navy-700 p-4 sm:hidden">
+      {!showHistory && (
+        <div className="mb-1 flex gap-4 border-b border-navy-700 pb-3">
+          <Link href="/login" className="text-[13px] text-bone/70 hover:text-bone">
+            Log in
+          </Link>
+          <Link href="/signup" className="text-[13px] font-medium text-bone hover:text-red">
+            Create free account
+          </Link>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-4">
+        <Link href="/forms" className="text-[13px] text-bone/70 hover:text-bone">
+          Forms
+        </Link>
+        <Link href="/calendar" className="text-[13px] text-bone/70 hover:text-bone">
+          Calendar
+        </Link>
+        <Link href="/bylaws" className="text-[13px] text-bone/70 hover:text-bone">
+          Bylaw Library
+        </Link>
+        <Link href="/coach/compare" className="text-[13px] text-bone/70 hover:text-bone">
+          Compare States
+        </Link>
+        <Link href="/" className="text-[13px] text-bone/70 hover:text-bone">
+          Home
+        </Link>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      {/* Desktop: static sidebar */}
-      <aside className="hidden w-64 shrink-0 border-r border-navy-700 bg-navy-900 md:flex md:flex-col">
-        {body}
-      </aside>
+      {/* Desktop: static sidebar — only for accounts with real history to show. */}
+      {showHistory && (
+        <aside className="hidden w-64 shrink-0 border-r border-navy-700 bg-navy-900 md:flex md:flex-col">
+          {history}
+        </aside>
+      )}
 
-      {/* Mobile: slide-in overlay */}
+      {/* Mobile: slide-in overlay — always available, since it's the only way
+          an anonymous visitor on a phone can navigate away from /coach. */}
       <div
         className={`fixed inset-0 z-50 bg-navy-900/50 transition-opacity md:hidden ${
           mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
@@ -88,29 +127,13 @@ export function ConversationRail({
         }`}
       >
         <div className="flex items-center justify-between border-b border-navy-700 p-4">
-          <span className="eyebrow text-bone/70">Conversations</span>
+          <span className="eyebrow text-bone/70">Menu</span>
           <button onClick={onCloseMobile} className="text-bone/70 hover:text-bone" aria-label="Close">
             &#10005;
           </button>
         </div>
-        {body}
-        <div className="flex flex-wrap items-center gap-4 border-t border-navy-700 p-4 sm:hidden">
-          <Link href="/forms" className="text-[13px] text-bone/70 hover:text-bone">
-            Forms
-          </Link>
-          <Link href="/calendar" className="text-[13px] text-bone/70 hover:text-bone">
-            Calendar
-          </Link>
-          <Link href="/bylaws" className="text-[13px] text-bone/70 hover:text-bone">
-            Bylaw Library
-          </Link>
-          <Link href="/coach/compare" className="text-[13px] text-bone/70 hover:text-bone">
-            Compare States
-          </Link>
-          <Link href="/" className="text-[13px] text-bone/70 hover:text-bone">
-            Home
-          </Link>
-        </div>
+        {history}
+        {navLinks}
       </aside>
     </>
   );

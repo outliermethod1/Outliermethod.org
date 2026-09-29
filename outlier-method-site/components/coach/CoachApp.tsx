@@ -402,15 +402,13 @@ export function CoachApp() {
   return (
     <div className="flex h-screen flex-col bg-bone">
       <div className="flex items-center gap-3 border-b border-navy-700 bg-navy-900 px-4 py-3">
-        {hasAccount && (
-          <button
-            onClick={() => setRailOpen(true)}
-            className="shrink-0 text-bone md:hidden"
-            aria-label="Open conversations"
-          >
-            &#9776;
-          </button>
-        )}
+        <button
+          onClick={() => setRailOpen(true)}
+          className="shrink-0 text-bone md:hidden"
+          aria-label="Open menu"
+        >
+          &#9776;
+        </button>
         <p className="hidden shrink-0 whitespace-nowrap font-serif text-sm font-semibold text-bone lg:inline">
           Coach Eli Govern
         </p>
@@ -447,24 +445,23 @@ export function CoachApp() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {hasAccount && (
-          <ConversationRail
-            conversations={conversations}
-            activeId={conversationId}
-            onSelect={(id) => {
-              loadConversation(id);
-              setRailOpen(false);
-            }}
-            onNew={() => {
-              startNewConversation();
-              setRailOpen(false);
-            }}
-            onExport={exportConversation}
-            onDelete={deleteConversation}
-            mobileOpen={railOpen}
-            onCloseMobile={() => setRailOpen(false)}
-          />
-        )}
+        <ConversationRail
+          conversations={conversations}
+          activeId={conversationId}
+          onSelect={(id) => {
+            loadConversation(id);
+            setRailOpen(false);
+          }}
+          onNew={() => {
+            startNewConversation();
+            setRailOpen(false);
+          }}
+          onExport={exportConversation}
+          onDelete={deleteConversation}
+          mobileOpen={railOpen}
+          onCloseMobile={() => setRailOpen(false)}
+          showHistory={!!hasAccount}
+        />
 
         <div className="flex flex-1 flex-col overflow-hidden">
           <div
@@ -533,7 +530,7 @@ export function CoachApp() {
               <div className="hidden shrink-0 sm:block">
                 <PortraitAvatar phase={phase} size={88} />
               </div>
-              <div className="flex flex-1 gap-2">
+              <div className="flex min-w-0 flex-1 gap-1.5 sm:gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -549,7 +546,7 @@ export function CoachApp() {
                         : "Ask Coach Eli anything..."
                 }
                 disabled={showGate}
-                className="flex-1 border border-rule px-3 py-2 text-[15px] focus:border-navy-900 focus:outline-none disabled:bg-bone disabled:text-slate"
+                className="min-w-0 flex-1 border border-rule px-3 py-2 text-[15px] focus:border-navy-900 focus:outline-none disabled:bg-bone disabled:text-slate"
               />
               {!showGate && (
                 <>
@@ -566,7 +563,7 @@ export function CoachApp() {
                     disabled={uploadingImage}
                     title="Attach a photo for Coach Eli to look at"
                     aria-label="Attach a photo"
-                    className="border border-navy-900 px-3 py-2 text-[15px] text-navy-900 hover:bg-navy-900 hover:text-bone disabled:opacity-50"
+                    className="shrink-0 border border-navy-900 px-2 py-2 text-[15px] text-navy-900 hover:bg-navy-900 hover:text-bone disabled:opacity-50 sm:px-3"
                   >
                     📎
                   </button>
@@ -578,7 +575,7 @@ export function CoachApp() {
                   onClick={toggleMic}
                   title={listening ? "Stop listening" : "Speak your question"}
                   aria-label={listening ? "Stop listening" : "Speak your question"}
-                  className={`border px-3 py-2 text-[15px] ${
+                  className={`shrink-0 border px-2 py-2 text-[15px] sm:px-3 ${
                     listening
                       ? "border-red bg-red text-white"
                       : "border-navy-900 text-navy-900 hover:bg-navy-900 hover:text-bone"
@@ -592,7 +589,7 @@ export function CoachApp() {
                   type="button"
                   onClick={toggleVoiceMode}
                   title={voiceMode ? "Turn off Voice Mode" : "Turn on Voice Mode — hands-free conversation"}
-                  className={`flex items-center gap-1 border px-3 py-2 text-[13px] font-medium ${
+                  className={`flex shrink-0 items-center gap-1 border px-2 py-2 text-[13px] font-medium sm:px-3 ${
                     voiceMode
                       ? "border-red bg-red text-white"
                       : "border-navy-900 text-navy-900 hover:bg-navy-900 hover:text-bone"
@@ -607,7 +604,7 @@ export function CoachApp() {
               <button
                 type="submit"
                 disabled={phase !== "idle" || showGate}
-                className="border border-navy-900 bg-navy-900 px-5 py-2 text-[14px] font-medium text-bone hover:bg-navy-700 disabled:opacity-50"
+                className="shrink-0 border border-navy-900 bg-navy-900 px-3 py-2 text-[14px] font-medium text-bone hover:bg-navy-700 disabled:opacity-50 sm:px-5"
               >
                 Send
               </button>
