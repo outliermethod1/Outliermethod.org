@@ -51,20 +51,46 @@ function reconstructLines(items: any[]): string {
   const lines: string[] = [];
   let currentLine = "";
   let lastY: number | null = null;
+  let lastEndX: number | null = null;
+  let lastFontScale = 1;
 
   for (const item of items) {
     const y = Array.isArray(item.transform) ? Math.round(item.transform[5]) : null;
+    const x = Array.isArray(item.transform) ? item.transform[4] : null;
+    const fontScale = Array.isArray(item.transform) ? Math.abs(item.transform[0]) || 1 : 1;
+
     if (currentLine && lastY !== null && y !== null && y !== lastY) {
       lines.push(currentLine.trim());
       currentLine = "";
+      lastEndX = null;
     }
+
     if (item.str) {
-      currentLine += (currentLine && !/\s$/.test(currentLine) ? " " : "") + item.str;
+      // Some PDF generators split a single visual word/number (e.g. a
+      // citation like "13-1-57") into several small positioned runs with
+      // only a hair of a gap between them — always inserting a space here
+      // (the old approach) produced "13 -1- 57" and silently broke every
+      // heading pattern expecting a clean id. Only insert a space when the
+      // horizontal gap between runs is wide enough to actually be a word
+      // boundary, scaled to the current font size.
+      let needsSpace = currentLine.length > 0 && !/\s$/.test(currentLine);
+      if (needsSpace && x !== null && lastEndX !== null) {
+        const gap = x - lastEndX;
+        needsSpace = gap > 0.2 * lastFontScale;
+      }
+      currentLine += (needsSpace ? " " : "") + item.str;
+      if (x !== null) {
+        const width = typeof item.width === "number" ? item.width : item.str.length * fontScale * 0.5;
+        lastEndX = x + width;
+      }
+      lastFontScale = fontScale;
     }
+
     if (item.hasEOL) {
       lines.push(currentLine.trim());
       currentLine = "";
       lastY = null;
+      lastEndX = null;
     } else {
       lastY = y;
     }
