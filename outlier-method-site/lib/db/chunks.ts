@@ -24,7 +24,18 @@ export interface NewChunk {
 }
 
 /** Insert a new chunk version and mark the prior current chunk with the same
- * bylaw_id as superseded. Amendments supersede — they never overwrite or delete. */
+ * bylaw_id as superseded. Amendments supersede — they never overwrite or delete.
+ *
+ * Scoped to a *different* document_id on purpose: a single document's own
+ * chunker pass can legitimately reuse a small numeric id across unrelated
+ * sections (e.g. MHSAA's "Section 1—Enrollment" and, elsewhere in the same
+ * handbook, "1. BASEBALL" under a sport-rules list both get bylaw_id "1").
+ * Without this scope, inserting those in the same ingestPdf() call made the
+ * later one supersede the earlier — silently hiding real content that was
+ * never actually amended, just coincidentally numbered. A genuine amendment
+ * always arrives via a separate document upload, so requiring document_id to
+ * differ still lets that supersede correctly (see seedColoradoDemo's two
+ * documents) while no longer superseding within one document's own chunks. */
 export async function insertChunkAndSupersede(chunk: NewChunk): Promise<string> {
   const embeddingLiteral = chunk.embedding ? `[${chunk.embedding.join(",")}]` : null;
 
@@ -50,8 +61,9 @@ export async function insertChunkAndSupersede(chunk: NewChunk): Promise<string> 
 
   await query(
     `update bylaw_chunks set superseded_by = $1
-     where state_code = $2 and bylaw_id = $3 and superseded_by is null and id != $1`,
-    [inserted.id, chunk.state_code.toLowerCase(), chunk.bylaw_id]
+     where state_code = $2 and bylaw_id = $3 and superseded_by is null and id != $1
+       and document_id is distinct from $4`,
+    [inserted.id, chunk.state_code.toLowerCase(), chunk.bylaw_id, chunk.document_id]
   );
 
   return inserted.id;
