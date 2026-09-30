@@ -18,13 +18,16 @@ const HEADING_PATTERNS = [
   // ("1730.3 Transfer Students") already supported without one.
   /^(?<id>\d{1,4}(?:\.\d{1,3}){0,2})\.?\s+(?<title>[A-Z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
   /^(?:Rule|RULE)\s+(?<id>\d{1,3}(?:[.\-]\d{1,3})?)\s*[:\-–]?\s*(?<title>[A-Za-z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
-  /^(?:Article|ARTICLE)\s+(?<id>[IVXLC]+|\d+)\s*[:\-–—]\s*(?<title>[A-Za-z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
+  // "ARTICLE V — Amateurism" / MHSAA's "ARTICLE I—NAME" and
+  // "REGULATION II—RULES FOR..." (em-dash attached directly, no spaces).
+  /^(?:Article|ARTICLE|Regulation|REGULATION)\s+(?<id>[IVXLC]+|\d+)\s*[:\-–—]\s*(?<title>[A-Za-z][A-Za-z0-9 ,'’\/&()-]{3,90})$/,
   // "BYLAW 101.00 AGE" / "SECTION 6.2 ELIGIBILITY" / "BY-LAW 3.1 TRANSFERS" /
-  // "BYLAW 6. TRANSFER RULE- CITIZENS OF THE U.S. AND D.C." — a word prefix,
-  // a numeric id (optionally dotted, optionally followed by a bare period
-  // before the title, as KHSAA uses), then an (often all-caps) title that
-  // may itself contain periods (state abbreviations) or an en/em dash.
-  /^(?:BY-?LAW|SECTION)\s+(?<id>\d{1,4}(?:\.\d{1,3}){0,2})\.?\s+(?<title>[A-Z][A-Za-z0-9 ,.'’"“”\/&()–—-]{2,90})$/i,
+  // "BYLAW 6. TRANSFER RULE- CITIZENS OF THE U.S. AND D.C." / MHSAA's
+  // "SECTION 1—ENROLLMENT" — a word prefix, a numeric id (optionally
+  // dotted), then either a bare period or a colon/dash before the title
+  // (KHSAA vs. MHSAA's own conventions), then an (often all-caps) title
+  // that may itself contain periods (state abbreviations) or an en/em dash.
+  /^(?:BY-?LAW|SECTION)\s+(?<id>\d{1,4}(?:\.\d{1,3}){0,2})(?:\.?\s+|\s*[:\-–—]\s*)(?<title>[A-Z][A-Za-z0-9 ,.'’"“”\/&()–—-]{2,90})$/i,
   // State-statute citation style, e.g. "SDCL 13-1-57 DEFINITIONS REGARDING..."
   // or "ORS 339.010 TITLE" — a short all-caps code abbreviation, a
   // hyphen-or-dot-separated numeric id, then a title on the same line.
@@ -134,11 +137,13 @@ function matchHeading(line: string): { id: string; title: string } | null {
     const m = line.match(pattern);
     if (m?.groups?.id && m.groups.title) {
       const title = m.groups.title.trim();
-      // A table-of-contents dot-leader line ("Section 1. Dues .......... 4")
+      // A table-of-contents dot-leader line ("Section 1. Dues .......... 4",
+      // or MHSAA's space-separated "Section 1—Enrollment . . . . . . . 27")
       // otherwise matches this same pattern once "." is allowed in titles
-      // (for real abbreviations like "U.S."/"D.C.") — a run of 2+ dots is
-      // never a real title, only ever a TOC leader, so reject it.
-      if (title.includes("..")) continue;
+      // (for real abbreviations like "U.S."/"D.C."). A real title never
+      // carries 3+ periods; a dot leader always does, consecutive or not,
+      // so count total dots rather than just checking for "..".
+      if ((title.match(/\./g)?.length ?? 0) >= 3) continue;
       return { id: m.groups.id, title };
     }
   }
